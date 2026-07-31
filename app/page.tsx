@@ -19,10 +19,10 @@ export default function Home() {
 
           {/* Title */}
           <h1 className="text-3xl sm:text-4xl font-black mb-3 text-[var(--text-primary)] tracking-tight">
-            Jiksaw Shop
+            🧩 Jiksaw Shop
           </h1>
           <p className="text-sm mb-8 text-[var(--text-muted)] leading-relaxed font-medium">
-            ระบบเช็คยอดผ่อนชำระสินค้า
+            🧾 ระบบเช็คยอดผ่อนชำระสินค้า
             <span className="block text-xs font-bold text-[var(--accent-blue)] mt-1.5 tracking-wide">
               ✨ เช็คง่าย สะดวก รวดเร็ว ตลอด 24 ชั่วโมง
             </span>
@@ -34,13 +34,13 @@ export default function Home() {
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              สำหรับลูกค้า (เช็คยอดผ่อน)
+              👤 สำหรับลูกค้า (เช็คยอดผ่อน)
             </Link>
             <Link href="/admin" className="btn-outline py-4 text-base font-semibold flex items-center justify-center gap-2.5">
               <svg className="w-5 h-5 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-              สำหรับร้านค้า (จัดการยอดผ่อน)
+              🏪 สำหรับร้านค้า (จัดการยอดผ่อน)
             </Link>
           </div>
 

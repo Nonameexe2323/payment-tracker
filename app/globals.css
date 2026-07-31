@@ -1,18 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 /* ═══════════════════════════════════════
    LIGHT THEME — Soft Vibrant & Friendly
    ═══════════════════════════════════════ */
 :root,
 [data-theme="light"] {
-  --bg-deep: #f8fafc;
-  --bg-body-gradient: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 50%, #f0fdf4 100%);
+  --bg-deep: #f0f9ff;
+  --bg-body-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
   --bg-panel: rgba(255, 255, 255, 0.92);
   --bg-panel-solid: #ffffff;
-  --bg-panel-soft: rgba(248, 250, 252, 0.9);
-  --accent-blue: #6366f1;
-  --accent-blue-soft: rgba(99, 102, 241, 0.1);
-  --accent-blue-glow: rgba(99, 102, 241, 0.25);
+  --bg-panel-soft: rgba(240, 249, 255, 0.9);
+  --accent-blue: #0ea5e9;
+  --accent-blue-soft: rgba(14, 165, 233, 0.1);
+  --accent-blue-glow: rgba(14, 165, 233, 0.25);
   --accent-gold: #f59e0b;
   --accent-gold-soft: rgba(245, 158, 11, 0.12);
   --accent-sky: #a855f7;
@@ -23,8 +27,8 @@
   --danger-soft: rgba(239, 68, 68, 0.1);
   --good: #10b981;
   --good-soft: rgba(16, 185, 129, 0.1);
-  --border-soft: rgba(226, 232, 240, 0.9);
-  --border-hover: rgba(99, 102, 241, 0.3);
+  --border-soft: rgba(186, 230, 253, 1);
+  --border-hover: rgba(14, 165, 233, 0.6);
   --glass-blur: 10px;
   --panel-shadow:
     0 10px 25px -5px rgba(99, 102, 241, 0.08),
@@ -32,8 +36,8 @@
   --panel-shadow-hover:
     0 15px 35px -5px rgba(99, 102, 241, 0.18);
   --btn-text: #ffffff;
-  --btn-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --btn-shadow: 0 6px 20px -3px rgba(99, 102, 241, 0.35);
+  --btn-gradient: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  --btn-shadow: 0 6px 20px -3px rgba(14, 165, 233, 0.35);
   --input-bg: rgba(255, 255, 255, 0.95);
   --input-bg-focus: #ffffff;
   --stat-bg: rgba(248, 250, 252, 0.9);
@@ -54,14 +58,14 @@
    DARK THEME — Cozy Vibrant Night
    ═══════════════════════════════════════ */
 [data-theme="dark"] {
-  --bg-deep: #090d16;
-  --bg-body-gradient: linear-gradient(180deg, #090d16 0%, #111827 50%, #1e1b4b 100%);
-  --bg-panel: rgba(23, 28, 48, 0.85);
-  --bg-panel-solid: #171c30;
-  --bg-panel-soft: rgba(30, 37, 64, 0.7);
-  --accent-blue: #818cf8;
-  --accent-blue-soft: rgba(129, 140, 248, 0.15);
-  --accent-blue-glow: rgba(129, 140, 248, 0.3);
+  --bg-deep: #020617;
+  --bg-body-gradient: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e3a8a 100%);
+  --bg-panel: rgba(15, 23, 42, 0.85);
+  --bg-panel-solid: #0f172a;
+  --bg-panel-soft: rgba(30, 41, 59, 0.7);
+  --accent-blue: #38bdf8;
+  --accent-blue-soft: rgba(56, 189, 248, 0.15);
+  --accent-blue-glow: rgba(56, 189, 248, 0.3);
   --accent-gold: #fbbf24;
   --accent-gold-soft: rgba(251, 191, 36, 0.15);
   --accent-sky: #c084fc;
@@ -72,16 +76,16 @@
   --danger-soft: rgba(248, 113, 113, 0.15);
   --good: #34d399;
   --good-soft: rgba(52, 211, 153, 0.15);
-  --border-soft: rgba(165, 180, 252, 0.15);
-  --border-hover: rgba(192, 132, 252, 0.35);
+  --border-soft: rgba(14, 165, 233, 0.4);
+  --border-hover: rgba(56, 189, 248, 0.8);
   --glass-blur: 12px;
   --panel-shadow:
     0 15px 35px -5px rgba(0, 0, 0, 0.5);
   --panel-shadow-hover:
     0 25px 50px -10px rgba(0, 0, 0, 0.6);
   --btn-text: #ffffff;
-  --btn-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --btn-shadow: 0 6px 20px -3px rgba(99, 102, 241, 0.45);
+  --btn-gradient: linear-gradient(135deg, #0284c7 0%, #3b82f6 100%);
+  --btn-shadow: 0 6px 20px -3px rgba(14, 165, 233, 0.45);
   --input-bg: rgba(15, 23, 42, 0.8);
   --input-bg-focus: rgba(15, 23, 42, 0.95);
   --stat-bg: rgba(15, 23, 42, 0.7);
@@ -193,6 +197,7 @@
 
 /* ─── Base ─── */
 body {
+  font-family: var(--font-sans), sans-serif;
   background: var(--bg-body-gradient);
   background-attachment: fixed;
   color: var(--text-primary);
@@ -223,7 +228,7 @@ body {
   background: var(--bg-panel);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   border-radius: 1.5rem;
   box-shadow: var(--panel-shadow);
   animation: fadeInUp 0.4s ease-out both;
@@ -264,7 +269,7 @@ body {
 
 /* ─── Outline Button ─── */
 .btn-outline {
-  border: 1.5px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   color: var(--text-primary);
   font-weight: 600;
   border-radius: 1rem;
@@ -291,7 +296,7 @@ body {
 /* ─── Input Field ─── */
 .input-field {
   background: var(--input-bg);
-  border: 1.5px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   border-radius: 1rem;
   color: var(--text-primary);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -312,7 +317,7 @@ body {
 /* ─── Stat Box ─── */
 .stat-box {
   background: var(--stat-bg);
-  border: 1px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   border-radius: 1.25rem;
   transition: all 0.2s ease;
 }
@@ -335,7 +340,7 @@ body {
 /* ─── List Item ─── */
 .list-item {
   background: var(--list-bg);
-  border: 1px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   border-radius: 1.25rem;
   transition: all 0.2s ease;
   min-height: 52px;
@@ -398,7 +403,7 @@ body {
   font-size: 0.85rem;
   padding: 0.55rem 1.2rem;
   border-radius: 0.875rem;
-  border: 1.5px solid var(--border-soft);
+  border: 2px solid var(--border-soft);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 600;
