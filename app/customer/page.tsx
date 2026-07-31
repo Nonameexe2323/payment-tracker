@@ -14,6 +14,10 @@ export default function CustomerPage() {
   const [payments, setPayments] = useState<Payment[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [payAmount, setPayAmount] = useState('')
+  const [slipFile, setSlipFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
 
   async function loadReceipt(customer: Customer) {
     setLoading(true)
@@ -58,7 +62,74 @@ export default function CustomerPage() {
     setNameResults(data || [])
   }
 
-  const paid = payments.reduce((s, p) => s + Number(p.amount), 0)
+  async function handleUpload() {
+    if (!payAmount || isNaN(Number(payAmount)) || Number(payAmount) <= 0) {
+      setError('กรุณาระบุจำนวนเงินให้ถูกต้อง')
+      return
+    }
+    if (!slipFile) {
+      setError('กรุณาอัปโหลดรูปสลิป')
+      return
+    }
+    if (!selected) return
+
+    setUploading(true)
+    setError('')
+    setUploadSuccess(false)
+
+    try {
+      const fileExt = slipFile.name.split('.').pop()
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('slips')
+        .upload(fileName, slipFile)
+        
+      if (uploadError) throw uploadError
+
+      const { data: publicUrlData } = supabase.storage
+        .from('slips')
+        .getPublicUrl(fileName)
+        
+      const slipUrl = publicUrlData.publicUrl
+
+      const { error: insertError } = await supabase
+        .from('payments')
+        .insert({
+          customer_id: selected.id,
+          amount: Number(payAmount),
+          paid_at: new Date().toISOString(),
+          status: 'pending',
+          slip_url: slipUrl
+        })
+
+      if (insertError) throw insertError
+
+      await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentCode: selected.code,
+          customerName: selected.name,
+          amount: Number(payAmount),
+          slipUrl
+        })
+      })
+
+      setUploadSuccess(true)
+      setPayAmount('')
+      setSlipFile(null)
+      loadReceipt(selected)
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || 'เกิดข้อผิดพลาดในการอัปโหลด')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // Count only approved or older payments (where status is null or not pending/rejected)
+  const paid = payments.filter(p => p.status !== 'pending' && p.status !== 'rejected').reduce((s, p) => s + Number(p.amount), 0)
   const remain = selected ? Math.max(selected.total_amount - paid, 0) : 0
   const pct = selected ? Math.min(100, Math.round((paid / selected.total_amount) * 100)) : 0
   const isComplete = pct >= 100
@@ -209,6 +280,51 @@ export default function CustomerPage() {
               </div>
             </div>
 
+            {/* Slip Upload Section */}
+            {!isComplete && (
+              <div className="mb-6 p-4 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-panel-soft)]">
+                <h3 className="text-sm font-bold text-[var(--text-primary)] mb-3">แจ้งชำระเงิน</h3>
+                
+                {uploadSuccess && (
+                  <div className="alert-good text-xs mb-4 px-3.5 py-2.5 flex items-center gap-2 font-medium">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    ส่งสลิปเรียบร้อยแล้ว รอแอดมินตรวจสอบยอดครับ
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดเงินที่โอน (บาท)</label>
+                    <input
+                      type="number"
+                      className="input-field w-full px-3 py-2 text-sm"
+                      placeholder="เช่น 1000"
+                      value={payAmount}
+                      onChange={(e) => setPayAmount(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">อัปโหลดสลิป</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="text-xs text-[var(--text-muted)] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--accent-blue)] file:text-white hover:file:bg-blue-600 cursor-pointer"
+                      onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                  <button 
+                    onClick={handleUpload}
+                    disabled={uploading}
+                    className="btn-primary w-full py-2 text-sm mt-2 disabled:opacity-50"
+                  >
+                    {uploading ? 'กำลังส่งข้อมูล...' : 'ส่งสลิปแจ้งโอน'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* History */}
             <div>
               <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--border-soft)]">
@@ -223,11 +339,17 @@ export default function CustomerPage() {
               ) : (
                 <div className="divide-y divide-[var(--border-soft)]">
                   {payments.map((p) => (
-                    <div key={p.id} className="payment-row">
-                      <span className="text-xs font-medium text-[var(--text-muted)]">
-                        {new Date(p.paid_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    <div key={p.id} className="payment-row flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-[var(--text-muted)]">
+                          {new Date(p.paid_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {p.status === 'pending' && <span className="text-[10px] text-[var(--gold)] font-bold">⏳ รอตรวจสอบ</span>}
+                        {p.status === 'rejected' && <span className="text-[10px] text-[var(--danger)] font-bold">❌ ไม่อนุมัติ</span>}
+                      </div>
+                      <span className={`font-bold text-sm ${p.status === 'pending' ? 'text-[var(--text-muted)]' : p.status === 'rejected' ? 'text-[var(--danger)] line-through' : 'text-[var(--accent-blue)]'}`}>
+                        +{Number(p.amount).toLocaleString('th-TH')} ฿
                       </span>
-                      <span className="font-bold text-sm text-[var(--accent-blue)]">+{Number(p.amount).toLocaleString('th-TH')} ฿</span>
                     </div>
                   ))}
                 </div>

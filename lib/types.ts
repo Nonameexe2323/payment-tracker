@@ -13,4 +13,8 @@ export type Payment = {
   customer_id: string
   amount: number
   paid_at: string
+  status: 'pending' | 'approved' | 'rejected'
+  slip_url?: string | null
+  approved_by?: string | null
+  approved_at?: string | null
 }

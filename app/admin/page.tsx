@@ -15,6 +15,7 @@ function genCode() {
 export default function AdminPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [paidMap, setPaidMap] = useState<Record<string, number>>({})
+  const [pendingMap, setPendingMap] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -29,12 +30,19 @@ export default function AdminPage() {
       .order('created_at', { ascending: false })
     setCustomers(custs || [])
 
-    const { data: payments } = await supabase.from('payments').select('customer_id, amount')
+    const { data: payments } = await supabase.from('payments').select('customer_id, amount, status')
     const map: Record<string, number> = {}
-    payments?.forEach((p: { customer_id: string; amount: number }) => {
-      map[p.customer_id] = (map[p.customer_id] || 0) + Number(p.amount)
+    const pMap: Record<string, number> = {}
+    payments?.forEach((p: { customer_id: string; amount: number; status: string }) => {
+      if (p.status !== 'pending' && p.status !== 'rejected') {
+        map[p.customer_id] = (map[p.customer_id] || 0) + Number(p.amount)
+      }
+      if (p.status === 'pending') {
+        pMap[p.customer_id] = (pMap[p.customer_id] || 0) + 1
+      }
     })
     setPaidMap(map)
+    setPendingMap(pMap)
   }
 
   useEffect(() => {
@@ -235,7 +243,12 @@ export default function AdminPage() {
                   style={{ animation: `fadeInUp 0.3s ease-out ${0.03 * i}s both` }}
                 >
                   <div className="min-w-0 pr-2">
-                    <div className="font-bold text-sm truncate text-[var(--text-primary)]">{c.name}</div>
+                    <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2">
+                      {c.name}
+                      {pendingMap[c.id] > 0 && (
+                        <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm">รอตรวจ {pendingMap[c.id]}</span>
+                      )}
+                    </div>
                     <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1">
                       <span className="font-mono bg-[var(--bg-panel-soft)] text-[var(--accent-blue)] px-2 py-0.5 rounded-full border border-[var(--border-soft)] font-bold text-[0.7rem]">{c.code}</span>
                       <span>ผ่อนแล้ว {cPct}%</span>
