@@ -298,12 +298,12 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล ลูกค้า *</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อเฟสลูกค้า *</label>
                 <input
                   className="input-field w-full px-3.5 py-2 text-sm"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="เช่น คุณสมชาย ใจดี"
+                  placeholder="เช่น Hodoro"
                 />
               </div>
               <div>
@@ -319,26 +319,26 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                <span>แอดมินผู้ดูแล (ลูกค้าจะไม่เห็นส่วนนี้)</span>
+                <span>แอดมินผู้ดูแล ใส่ชื่อที่คนในเพจจำได้ (ลูกค้าจะไม่เห็นส่วนนี้)</span>
                 <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
               </label>
               <input
                 className="input-field w-full px-3.5 py-2 text-sm"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
-                placeholder="เช่น แอดมิน A, แอดมินไก่"
+                placeholder="เช่น หัวเพจ ไอหนวด"
               />
             </div>
             <div>
               <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                <span>หมายเหตุสัญญา / โน้ตแอดมิน</span>
+                <span>หมายเหตุสัญญา / โน้ตแอดมิน จะใส่หรือไม่ใส่ก็ได้นะ (ลูกค้าจะไม่เห็นส่วนนี้)</span>
                 <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
               </label>
               <textarea
                 className="input-field w-full px-3.5 py-2 text-sm min-h-[70px] resize-y py-2.5"
                 value={adminNote}
                 onChange={(e) => setAdminNote(e.target.value)}
-                placeholder="เช่น ผ่อนไอดี Roblox Blox Fruit เลเวลเต็ม / ขอนัดโอนทุกวันที่ 5"
+                placeholder="ไอดีFreeFire Roblox ผ่อนสุดวันที่ 1 เดือน 8"
               />
             </div>
           </div>
@@ -353,9 +353,8 @@ export default function AdminPage() {
           </button>
 
           {msg && (
-            <div className={`text-xs mt-4 px-3.5 py-2.5 flex items-center gap-2 font-medium ${
-              msg.type === 'ok' ? 'alert-ok' : 'alert-err'
-            }`}>
+            <div className={`text-xs mt-4 px-3.5 py-2.5 flex items-center gap-2 font-medium ${msg.type === 'ok' ? 'alert-ok' : 'alert-err'
+              }`}>
               {msg.type === 'ok' ? (
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

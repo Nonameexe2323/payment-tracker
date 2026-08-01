@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
+import ReceiptModal from '@/app/components/ReceiptModal'
 
 export default function CustomerPage() {
   const [codeInput, setCodeInput] = useState('')
@@ -15,6 +16,7 @@ export default function CustomerPage() {
   const [slipFile, setSlipFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
 
   async function loadReceipt(customer: Customer) {
     setLoading(true)
@@ -269,6 +271,14 @@ export default function CustomerPage() {
               <div className="bar-track h-2.5 mt-3">
                 <div className="bar-fill h-full" style={{ width: `${pct}%` }} />
               </div>
+
+              {/* Download Receipt Button */}
+              <button
+                onClick={() => setShowReceipt(true)}
+                className="btn-outline w-full py-2.5 text-xs font-bold mt-4 flex items-center justify-center gap-2 hover:border-[var(--accent-blue)]"
+              >
+                <span>🖼️</span> ออกใบเสร็จสรุปยอดผ่อนดิจิทัล (เซฟรูปลงเครื่อง)
+              </button>
             </div>
 
             {/* Breakdown grid */}
@@ -404,6 +414,14 @@ export default function CustomerPage() {
               )}
             </div>
           </div>
+        )}
+        {/* Receipt Modal */}
+        {showReceipt && selected && (
+          <ReceiptModal
+            customer={selected}
+            payments={payments}
+            onClose={() => setShowReceipt(false)}
+          />
         )}
       </div>
     </main>
