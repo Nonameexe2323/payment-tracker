@@ -363,8 +363,8 @@ export default function CustomerDetailPage() {
                   onChange={(e) => setAmount(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') recordPayment() }}
                 />
-                <button onClick={recordPayment} className="btn-primary px-3.5 sm:px-5 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0">
-                  บันทึกรายการ
+                <button onClick={recordPayment} className="btn-primary px-4 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0">
+                  บันทึก
                 </button>
               </div>
               {msg && (
