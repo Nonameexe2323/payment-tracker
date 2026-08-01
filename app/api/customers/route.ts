@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, total_amount, status, admin_name } = body
+    const { id, name, total_amount, status, admin_name, admin_note } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
@@ -16,6 +16,7 @@ export async function PUT(request: Request) {
     if (total_amount !== undefined) updateData.total_amount = total_amount
     if (status !== undefined) updateData.status = status
     if (admin_name !== undefined) updateData.admin_name = admin_name
+    if (admin_note !== undefined) updateData.admin_note = admin_note
 
     const { data, error } = await supabaseAdmin
       .from('customers')

@@ -39,6 +39,8 @@ export default function AdminPage() {
   const [editTotal, setEditTotal] = useState('')
   const [adminName, setAdminName] = useState('')
   const [editAdminName, setEditAdminName] = useState('')
+  const [adminNote, setAdminNote] = useState('')
+  const [editAdminNote, setEditAdminNote] = useState('')
   const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   async function loadCustomers() {
@@ -79,6 +81,7 @@ export default function AdminPage() {
       name: name.trim(),
       total_amount: Number(total),
       admin_name: adminName.trim() || null,
+      admin_note: adminNote.trim() || null,
     })
     if (error) {
       setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง' })
@@ -88,6 +91,7 @@ export default function AdminPage() {
     setName('')
     setTotal('')
     setAdminName('')
+    setAdminNote('')
     loadCustomers()
   }
 
@@ -97,6 +101,7 @@ export default function AdminPage() {
     setEditName(c.name)
     setEditTotal(String(c.total_amount))
     setEditAdminName(c.admin_name || '')
+    setEditAdminNote(c.admin_note || '')
     setModalMsg(null)
     setModal('edit')
   }
@@ -116,7 +121,8 @@ export default function AdminPage() {
           id: selectedCustomer.id,
           name: editName.trim(),
           total_amount: Number(editTotal),
-          admin_name: editAdminName.trim() || null
+          admin_name: editAdminName.trim() || null,
+          admin_note: editAdminNote.trim() || null
         })
       })
       const result = await res.json()
@@ -323,6 +329,18 @@ export default function AdminPage() {
                 placeholder="เช่น แอดมิน A, แอดมินไก่"
               />
             </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                <span>หมายเหตุสัญญา / โน้ตแอดมิน</span>
+                <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+              </label>
+              <textarea
+                className="input-field w-full px-3.5 py-2 text-sm min-h-[70px] resize-y py-2.5"
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+                placeholder="เช่น ผ่อนไอดี Roblox Blox Fruit เลเวลเต็ม / ขอนัดโอนทุกวันที่ 5"
+              />
+            </div>
           </div>
 
           <button onClick={addCustomer} className="btn-primary w-full py-3 text-sm mt-5 font-bold">
@@ -443,6 +461,11 @@ export default function AdminPage() {
                             👤 {c.admin_name}
                           </span>
                         )}
+                        {c.admin_note && (
+                          <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20 font-medium flex items-center gap-1 max-w-[200px] truncate" title={c.admin_note}>
+                            📝 {c.admin_note}
+                          </span>
+                        )}
                       </div>
                     </Link>
                     <div className="text-right shrink-0">
@@ -541,6 +564,18 @@ export default function AdminPage() {
                   value={editAdminName}
                   onChange={(e) => setEditAdminName(e.target.value)}
                   placeholder="เช่น แอดมิน A"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                  <span>หมายเหตุสัญญา / โน้ตแอดมิน</span>
+                  <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+                </label>
+                <textarea
+                  className="input-field w-full px-3.5 py-2 text-sm min-h-[70px] resize-y py-2.5"
+                  value={editAdminNote}
+                  onChange={(e) => setEditAdminNote(e.target.value)}
+                  placeholder="เช่น ผ่อนไอดี Roblox / ขอนัดโอนทุกวันที่ 5"
                 />
               </div>
               {modalMsg && (

@@ -5,6 +5,7 @@ export type Customer = {
   total_amount: number
   status: 'active' | 'defaulted'
   admin_name?: string | null
+  admin_note?: string | null
   created_at: string
 }
 

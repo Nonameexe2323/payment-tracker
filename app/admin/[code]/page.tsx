@@ -24,6 +24,7 @@ export default function CustomerDetailPage() {
   const [editName, setEditName] = useState('')
   const [editTotal, setEditTotal] = useState('')
   const [editAdminName, setEditAdminName] = useState('')
+  const [editAdminNote, setEditAdminNote] = useState('')
   const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   async function loadData() {
@@ -114,6 +115,7 @@ export default function CustomerDetailPage() {
     setEditName(customer.name)
     setEditTotal(String(customer.total_amount))
     setEditAdminName(customer.admin_name || '')
+    setEditAdminNote(customer.admin_note || '')
     setModalMsg(null)
     setModal('edit')
   }
@@ -133,7 +135,8 @@ export default function CustomerDetailPage() {
           id: customer.id,
           name: editName.trim(),
           total_amount: Number(editTotal),
-          admin_name: editAdminName.trim() || null
+          admin_name: editAdminName.trim() || null,
+          admin_note: editAdminNote.trim() || null
         })
       })
       const result = await res.json()
@@ -263,6 +266,14 @@ export default function CustomerDetailPage() {
                   </span>
                 )}
               </div>
+              {customer.admin_note && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                  <div className="font-bold flex items-center gap-1 mb-0.5">
+                    📝 หมายเหตุสัญญา / โน้ตแอดมิน:
+                  </div>
+                  <div className="whitespace-pre-wrap font-medium">{customer.admin_note}</div>
+                </div>
+              )}
             </div>
             {isDefaulted ? (
               <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
@@ -545,6 +556,18 @@ export default function CustomerDetailPage() {
                   value={editAdminName}
                   onChange={(e) => setEditAdminName(e.target.value)}
                   placeholder="เช่น แอดมิน A"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                  <span>หมายเหตุสัญญา / โน้ตแอดมิน</span>
+                  <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+                </label>
+                <textarea
+                  className="input-field w-full px-3.5 py-2 text-sm min-h-[70px] resize-y py-2.5"
+                  value={editAdminNote}
+                  onChange={(e) => setEditAdminNote(e.target.value)}
+                  placeholder="เช่น ผ่อนไอดี Roblox / ขอนัดโอนทุกวันที่ 5"
                 />
               </div>
               {modalMsg && (
