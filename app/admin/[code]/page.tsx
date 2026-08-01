@@ -279,9 +279,9 @@ export default function CustomerDetailPage() {
             {isDefaulted ? (
               <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
             ) : isComplete ? (
-              <span className="badge badge-good font-bold">✓ ชำระครบถ้วนแล้ว</span>
+              <span className="badge badge-good font-bold">✓ ผ่อนครบแล้ว</span>
             ) : (
-              <span className="badge badge-gold font-bold">กำลังผ่อนชำระ</span>
+              <span className="badge badge-gold font-bold">กำลังผ่อน</span>
             )}
           </div>
 
@@ -410,13 +410,12 @@ export default function CustomerDetailPage() {
                   return (
                     <div
                       key={p.id}
-                      className={`p-4 rounded-2xl border transition-all ${
-                        isPending
+                      className={`p-4 rounded-2xl border transition-all ${isPending
                           ? 'bg-[var(--gold-soft)]/20 border-amber-500/30 dark:border-amber-500/40 shadow-sm'
                           : isRejected
-                          ? 'bg-red-500/5 border-red-500/20 opacity-75'
-                          : 'bg-[var(--bg-panel-soft)] border-[var(--border-soft)] hover:border-[var(--border-hover)]'
-                      }`}
+                            ? 'bg-red-500/5 border-red-500/20 opacity-75'
+                            : 'bg-[var(--bg-panel-soft)] border-[var(--border-soft)] hover:border-[var(--border-hover)]'
+                        }`}
                     >
                       {/* Top bar: Status Badge + Date/Time */}
                       <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-[var(--border-soft)]">
@@ -457,13 +456,12 @@ export default function CustomerDetailPage() {
                         <div>
                           <div className="text-xs text-[var(--text-muted)] font-medium mb-0.5">จำนวนเงิน</div>
                           <div
-                            className={`text-xl font-extrabold tracking-tight ${
-                              isPending
+                            className={`text-xl font-extrabold tracking-tight ${isPending
                                 ? 'text-[var(--gold)]'
                                 : isRejected
-                                ? 'text-[var(--danger)] line-through'
-                                : 'text-[var(--good)]'
-                            }`}
+                                  ? 'text-[var(--danger)] line-through'
+                                  : 'text-[var(--good)]'
+                              }`}
                           >
                             +{Number(p.amount).toLocaleString('th-TH')}{' '}
                             <span className="text-xs font-normal text-[var(--text-muted)]">บาท</span>
