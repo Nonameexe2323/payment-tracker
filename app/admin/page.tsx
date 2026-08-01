@@ -190,11 +190,19 @@ export default function AdminPage() {
     .filter(
       (c) =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.code.toLowerCase().includes(search.toLowerCase())
+        c.code.toLowerCase().includes(search.toLowerCase()) ||
+        (c.admin_name && c.admin_name.toLowerCase().includes(search.toLowerCase()))
     )
 
-  const activeCount = customers.filter(c => c.status !== 'defaulted').length
-  const defaultedCount = customers.filter(c => c.status === 'defaulted').length
+  const activeCustomers = customers.filter(c => c.status !== 'defaulted')
+  const defaultedCustomers = customers.filter(c => c.status === 'defaulted')
+
+  const totalActiveCustomersCount = activeCustomers.length
+  const totalDefaultedCustomersCount = defaultedCustomers.length
+
+  const grandTotalAmount = activeCustomers.reduce((acc, c) => acc + Number(c.total_amount || 0), 0)
+  const grandPaidAmount = activeCustomers.reduce((acc, c) => acc + Number(paidMap[c.id] || 0), 0)
+  const grandRemainingAmount = Math.max(0, grandTotalAmount - grandPaidAmount)
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
@@ -226,6 +234,49 @@ export default function AdminPage() {
               </svg>
               ออกจากระบบ
             </button>
+          </div>
+        </div>
+
+        {/* Dashboard Overall Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {/* Active Customers */}
+          <div className="stat-box p-3.5 text-center">
+            <div className="text-[11px] text-[var(--text-muted)] font-semibold mb-1 flex items-center justify-center gap-1">
+              <span>👤</span> คนที่กำลังผ่อน
+            </div>
+            <div className="text-lg font-extrabold text-[var(--accent-blue)]">
+              {totalActiveCustomersCount} <span className="text-xs font-normal text-[var(--text-muted)]">คน</span>
+            </div>
+          </div>
+
+          {/* Grand Total Amount */}
+          <div className="stat-box p-3.5 text-center">
+            <div className="text-[11px] text-[var(--text-muted)] font-semibold mb-1 flex items-center justify-center gap-1">
+              <span>💰</span> ยอดผ่อนรวม
+            </div>
+            <div className="text-lg font-extrabold text-[var(--text-primary)]">
+              {grandTotalAmount.toLocaleString('th-TH')} <span className="text-xs font-normal text-[var(--text-muted)]">฿</span>
+            </div>
+          </div>
+
+          {/* Grand Paid Amount */}
+          <div className="stat-box p-3.5 text-center">
+            <div className="text-[11px] text-[var(--text-muted)] font-semibold mb-1 flex items-center justify-center gap-1">
+              <span>💵</span> ยอดจ่ายแล้ว
+            </div>
+            <div className="text-lg font-extrabold text-[var(--good)]">
+              {grandPaidAmount.toLocaleString('th-TH')} <span className="text-xs font-normal text-[var(--text-muted)]">฿</span>
+            </div>
+          </div>
+
+          {/* Grand Remaining Amount */}
+          <div className="stat-box p-3.5 text-center">
+            <div className="text-[11px] text-[var(--text-muted)] font-semibold mb-1 flex items-center justify-center gap-1">
+              <span>📉</span> ยอดคงเหลือ
+            </div>
+            <div className="text-lg font-extrabold text-[var(--danger)]">
+              {grandRemainingAmount.toLocaleString('th-TH')} <span className="text-xs font-normal text-[var(--text-muted)]">฿</span>
+            </div>
           </div>
         </div>
 
@@ -325,13 +376,13 @@ export default function AdminPage() {
               onClick={() => setFilter('active')}
               className={`filter-tab ${filter === 'active' ? 'filter-tab-active' : ''}`}
             >
-              กำลังผ่อน ({activeCount})
+              กำลังผ่อน ({totalActiveCustomersCount})
             </span>
             <span
               onClick={() => setFilter('defaulted')}
               className={`filter-tab ${filter === 'defaulted' ? 'filter-tab-active' : ''}`}
             >
-              หลุดผ่อน ({defaultedCount})
+              หลุดผ่อน ({totalDefaultedCustomersCount})
             </span>
           </div>
 
@@ -342,7 +393,7 @@ export default function AdminPage() {
             </svg>
             <input
               className="input-field w-full pl-10 pr-3.5 py-2 text-sm"
-              placeholder="ค้นหาตามชื่อลูกค้า หรือ รหัสผ่อน..."
+              placeholder="ค้นหาตามชื่อลูกค้า, รหัสผ่อน หรือ ชื่อแอดมินผู้ดูแล..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
