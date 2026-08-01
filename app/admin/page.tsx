@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer } from '@/lib/types'
+import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 
 async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -453,7 +454,7 @@ export default function AdminPage() {
                         )}
                       </div>
                       <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="font-mono bg-[var(--bg-panel-soft)] text-[var(--accent-blue)] px-2 py-0.5 rounded-full border border-[var(--border-soft)] font-bold text-[0.7rem]">{c.code}</span>
+                        <CopyCodeBadge code={c.code} />
                         <span>ผ่อนแล้ว {cPct}%</span>
                         {c.admin_name && (
                           <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 font-semibold flex items-center gap-1">

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
 import ReceiptModal from '@/app/components/ReceiptModal'
+import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
 
@@ -259,9 +260,7 @@ export default function CustomerDetailPage() {
                 {customer.name}
               </h1>
               <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-muted)] flex-wrap">
-                <span className="font-mono bg-[var(--bg-panel-soft)] text-[var(--text-primary)] px-2 py-0.5 rounded-full border border-[var(--border-soft)] font-bold">
-                  {customer.code}
-                </span>
+                <CopyCodeBadge code={customer.code} />
                 {customer.admin_name && (
                   <span className="bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-semibold flex items-center gap-1">
                     👤 แอดมินผู้ดูแล: {customer.admin_name}

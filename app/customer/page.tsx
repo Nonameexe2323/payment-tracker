@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
 import ReceiptModal from '@/app/components/ReceiptModal'
+import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 
 export default function CustomerPage() {
   const [codeInput, setCodeInput] = useState('')
@@ -245,9 +246,10 @@ export default function CustomerPage() {
                 <h2 className="text-xl font-bold text-[var(--text-primary)]">
                   {selected.name}
                 </h2>
-                <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
-                  รหัสผ่อน: <span className="font-bold text-[var(--text-primary)]">{selected.code}</span>
-                </p>
+                <div className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1.5 font-mono">
+                  <span>รหัสผ่อน:</span>
+                  <CopyCodeBadge code={selected.code} />
+                </div>
               </div>
               {selected.status === 'defaulted' ? (
                 <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
