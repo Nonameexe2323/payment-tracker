@@ -677,6 +677,15 @@ export default function CustomerDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Receipt Modal */}
+      {showReceipt && customer && (
+        <ReceiptModal
+          customer={customer}
+          payments={payments}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
     </main>
   )
 }
