@@ -6,10 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
 
 export default function CustomerPage() {
-  const [method, setMethod] = useState<'code' | 'name'>('code')
   const [codeInput, setCodeInput] = useState('')
-  const [nameInput, setNameInput] = useState('')
-  const [nameResults, setNameResults] = useState<Customer[]>([])
   const [selected, setSelected] = useState<Customer | null>(null)
   const [payments, setPayments] = useState<Payment[]>([])
   const [error, setError] = useState('')
@@ -47,21 +44,6 @@ export default function CustomerPage() {
     loadReceipt(data)
   }
 
-  async function searchByName(q: string) {
-    setNameInput(q)
-    setSelected(null)
-    if (!q.trim()) {
-      setNameResults([])
-      return
-    }
-    const { data } = await supabase
-      .from('customers')
-      .select('*')
-      .ilike('name', `%${q.trim()}%`)
-      .limit(10)
-    setNameResults(data || [])
-  }
-
   async function handleUpload() {
     if (!payAmount || isNaN(Number(payAmount)) || Number(payAmount) <= 0) {
       setError('กรุณาระบุจำนวนเงินให้ถูกต้อง')
@@ -80,17 +62,17 @@ export default function CustomerPage() {
     try {
       const fileExt = slipFile.name.split('.').pop()
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
-      
+
       const { error: uploadError } = await supabase.storage
         .from('slips')
         .upload(fileName, slipFile)
-        
+
       if (uploadError) throw uploadError
 
       const { data: publicUrlData } = supabase.storage
         .from('slips')
         .getPublicUrl(fileName)
-        
+
       const slipUrl = publicUrlData.publicUrl
 
       const { error: insertError } = await supabase
@@ -157,62 +139,43 @@ export default function CustomerPage() {
         </div>
 
         {/* Search Panel */}
-        <div className="panel p-6 mb-6">
-          {/* Method Toggle */}
-          <div className="flex gap-2 mb-5">
-            <span
-              onClick={() => { setMethod('code'); setSelected(null); setError('') }}
-              className={`pill-tab flex-1 ${method === 'code' ? 'pill-tab-active' : ''}`}
-            >
-              ค้นหาด้วยรหัสผ่อน
-            </span>
-            <span
-              onClick={() => { setMethod('name'); setSelected(null); setError('') }}
-              className={`pill-tab flex-1 ${method === 'name' ? 'pill-tab-active' : ''}`}
-            >
-              ค้นหาด้วยชื่อ
-            </span>
-          </div>
+        <div className="panel p-6 mb-6 overflow-hidden relative">
+          {/* Subtle top accent gradient */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500" />
 
-          {method === 'code' ? (
-            <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1.5 font-semibold">รหัสผ่อนชำระ</label>
-              <div className="flex gap-2">
+          <div>
+            <label className="text-xs text-[var(--text-muted)] block mb-2 font-semibold flex items-center justify-between">
+              <span>กรอกรหัสผ่อน (Code) ที่ได้รับจากแอดมิน</span>
+              <span className="text-[10px] text-[var(--accent-blue)] font-bold">✨ รหัส 5 หลัก</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <svg className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
                 <input
-                  className="input-field flex-1 px-3.5 py-2.5 text-sm uppercase font-mono tracking-wider"
+                  className="input-field w-full pl-10 pr-3.5 py-2.5 text-sm uppercase font-mono tracking-widest font-bold text-[var(--accent-blue)]"
                   placeholder="เช่น A7K2M"
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') searchByCode() }}
                 />
-                <button onClick={searchByCode} className="btn-primary px-5 text-sm font-bold whitespace-nowrap">
-                  ค้นหา
-                </button>
               </div>
+              <button onClick={searchByCode} className="btn-primary px-5 text-sm font-bold whitespace-nowrap shadow-md shadow-sky-500/20">
+                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                ค้นหา
+              </button>
             </div>
-          ) : (
-            <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1.5 font-semibold">ชื่อลูกค้า</label>
-              <input
-                className="input-field w-full px-3.5 py-2.5 text-sm mb-3"
-                placeholder="พิมพ์ชื่อลูกค้า..."
-                value={nameInput}
-                onChange={(e) => searchByName(e.target.value)}
-              />
-              <div className="space-y-1.5">
-                {nameResults.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => loadReceipt(c)}
-                    className="list-item flex justify-between items-center px-3.5 py-2.5 cursor-pointer"
-                  >
-                    <span className="font-semibold text-sm text-[var(--text-primary)]">{c.name}</span>
-                    <span className="font-mono text-xs font-bold text-[var(--accent-blue)] bg-[var(--bg-panel-soft)] px-2.5 py-1 rounded-full border border-[var(--border-soft)]">{c.code}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
+
+          {/* Quick Feature Badges */}
+          <div className="flex items-center justify-between gap-1 mt-4 pt-3 border-t border-[var(--border-soft)] text-[10px] font-semibold text-[var(--text-muted)]">
+            <span className="flex items-center gap-1">⚡ เช็คได้ตลอด 24 ชม.</span>
+            <span className="flex items-center gap-1">🧾 แนบสลิปง่าย</span>
+            <span className="flex items-center gap-1">🔒 ระบบปลอดภัย</span>
+          </div>
 
           {error && (
             <div className="alert-err text-xs mt-4 px-3.5 py-2.5 flex items-center gap-2 font-medium">
@@ -224,11 +187,49 @@ export default function CustomerPage() {
           )}
         </div>
 
+        {/* Welcome Guidance Card (Shown before search) */}
+        {!selected && !loading && (
+          <div className="panel p-6 text-center" style={{ animation: 'fadeInUp 0.3s ease-out both' }}>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--accent-blue-soft)] to-indigo-500/10 border border-[var(--border-soft)] flex items-center justify-center mx-auto mb-4 text-[var(--accent-blue)]">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+
+            <h3 className="text-base font-extrabold text-[var(--text-primary)] mb-1">
+              ยินดีต้อนรับสู่ระบบเช็คยอดผ่อน
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] mb-5 font-medium">
+              กรอกรหัสผ่อน 5 หลักในช่องด้านบนเพื่อเริ่มต้นใช้งาน
+            </p>
+
+            <div className="grid grid-cols-3 gap-2 text-left">
+              <div className="p-3 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)]">
+                <div className="text-base mb-1">🔑</div>
+                <div className="text-[11px] font-bold text-[var(--text-primary)] mb-0.5">1. ใส่รหัสผ่อน</div>
+                <div className="text-[10px] text-[var(--text-muted)] leading-tight">รหัส 5 หลักที่ได้จากแอดมิน</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)]">
+                <div className="text-base mb-1">📊</div>
+                <div className="text-[11px] font-bold text-[var(--text-primary)] mb-0.5">2. เช็คยอดผ่อน</div>
+                <div className="text-[10px] text-[var(--text-muted)] leading-tight">ดูยอดที่จ่ายแล้วและคงเหลือ</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)]">
+                <div className="text-base mb-1">📸</div>
+                <div className="text-[11px] font-bold text-[var(--text-primary)] mb-0.5">3. แนบรูปสลิป</div>
+                <div className="text-[10px] text-[var(--text-muted)] leading-tight">แจ้งโอนเงินให้แอดมินตรวจ</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Loading */}
         {loading && (
-          <div className="text-center py-8">
+          <div className="text-center py-10">
             <div className="loading-spinner mb-3" />
-            <p className="text-xs text-[var(--text-muted)] font-medium">กำลังโหลดข้อมูล...</p>
+            <p className="text-xs text-[var(--text-muted)] font-medium">กำลังค้นหาข้อมูลยอดผ่อน...</p>
           </div>
         )}
 
@@ -246,7 +247,9 @@ export default function CustomerPage() {
                   รหัสผ่อน: <span className="font-bold text-[var(--text-primary)]">{selected.code}</span>
                 </p>
               </div>
-              {isComplete ? (
+              {selected.status === 'defaulted' ? (
+                <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
+              ) : isComplete ? (
                 <span className="badge badge-good font-bold">✓ ชำระครบแล้ว</span>
               ) : (
                 <span className="badge badge-gold font-bold">กำลังผ่อนชำระ</span>
@@ -269,22 +272,31 @@ export default function CustomerPage() {
             </div>
 
             {/* Breakdown grid */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="mb-6">
               <div className="stat-box p-3.5">
                 <div className="text-xs text-[var(--text-muted)] font-medium mb-1">ยอดคงเหลือ</div>
                 <div className="text-base font-bold text-[var(--danger)]">{remain.toLocaleString('th-TH')} ฿</div>
               </div>
-              <div className="stat-box p-3.5">
-                <div className="text-xs text-[var(--text-muted)] font-medium mb-1">ค่างวดต่อเดือน</div>
-                <div className="text-base font-bold text-[var(--text-primary)]">{selected.monthly_amount ? `${selected.monthly_amount.toLocaleString('th-TH')} ฿` : '-'}</div>
-              </div>
             </div>
 
+            {/* Defaulted Notice */}
+            {selected.status === 'defaulted' && (
+              <div className="mb-6 p-4 rounded-xl bg-[var(--danger-soft)] border border-[rgba(239,68,68,0.3)]">
+                <div className="flex items-center gap-2 text-sm font-bold text-[var(--danger)]">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  รายการนี้หลุดผ่อนแล้ว
+                </div>
+                <p className="text-xs text-[var(--text-muted)] mt-1">กรุณาติดต่อร้านค้าเพื่อดำเนินการต่อ</p>
+              </div>
+            )}
+
             {/* Slip Upload Section */}
-            {!isComplete && (
+            {!isComplete && selected.status !== 'defaulted' && (
               <div className="mb-6 p-4 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-panel-soft)]">
                 <h3 className="text-sm font-bold text-[var(--text-primary)] mb-3">แจ้งชำระเงิน</h3>
-                
+
                 {uploadSuccess && (
                   <div className="alert-good text-xs mb-4 px-3.5 py-2.5 flex items-center gap-2 font-medium">
                     <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -314,7 +326,7 @@ export default function CustomerPage() {
                       onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
                     />
                   </div>
-                  <button 
+                  <button
                     onClick={handleUpload}
                     disabled={uploading}
                     className="btn-primary w-full py-2 text-sm mt-2 disabled:opacity-50"
@@ -337,21 +349,57 @@ export default function CustomerPage() {
                   <p className="text-xs text-[var(--text-muted)] font-medium">ยังไม่มีประวัติการชำระเงิน</p>
                 </div>
               ) : (
-                <div className="divide-y divide-[var(--border-soft)]">
-                  {payments.map((p) => (
-                    <div key={p.id} className="payment-row flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-medium text-[var(--text-muted)]">
-                          {new Date(p.paid_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                <div className="space-y-2.5">
+                  {payments.map((p, idx) => {
+                    const isPending = p.status === 'pending'
+                    const isRejected = p.status === 'rejected'
+                    const isApproved = p.status === 'approved' || (!isPending && !isRejected)
+
+                    return (
+                      <div
+                        key={p.id}
+                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+                          isPending
+                            ? 'bg-[var(--gold-soft)]/20 border-amber-500/30'
+                            : isRejected
+                            ? 'bg-red-500/5 border-red-500/20 opacity-75'
+                            : 'bg-[var(--bg-panel-soft)] border-[var(--border-soft)]'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[var(--text-muted)] bg-[var(--stat-bg)] px-1.5 py-0.5 rounded border border-[var(--border-soft)] font-mono">
+                              งวดที่ {payments.length - idx}
+                            </span>
+                            {isPending && <span className="badge badge-gold text-[10px] py-0.5 px-2">⏳ รอตรวจสอบ</span>}
+                            {isApproved && <span className="badge badge-good text-[10px] py-0.5 px-2">✓ อนุมัติแล้ว</span>}
+                            {isRejected && <span className="badge badge-danger text-[10px] py-0.5 px-2">❌ ไม่อนุมัติ</span>}
+                          </div>
+                          <span className="text-[11px] text-[var(--text-muted)] font-medium">
+                            {new Date(p.paid_at).toLocaleDateString('th-TH', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })} น.
+                          </span>
+                        </div>
+
+                        <span
+                          className={`font-extrabold text-base tracking-tight ${
+                            isPending
+                              ? 'text-[var(--gold)]'
+                              : isRejected
+                              ? 'text-[var(--danger)] line-through'
+                              : 'text-[var(--accent-blue)]'
+                          }`}
+                        >
+                          +{Number(p.amount).toLocaleString('th-TH')} ฿
                         </span>
-                        {p.status === 'pending' && <span className="text-[10px] text-[var(--gold)] font-bold">⏳ รอตรวจสอบ</span>}
-                        {p.status === 'rejected' && <span className="text-[10px] text-[var(--danger)] font-bold">❌ ไม่อนุมัติ</span>}
                       </div>
-                      <span className={`font-bold text-sm ${p.status === 'pending' ? 'text-[var(--text-muted)]' : p.status === 'rejected' ? 'text-[var(--danger)] line-through' : 'text-[var(--accent-blue)]'}`}>
-                        +{Number(p.amount).toLocaleString('th-TH')} ฿
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>

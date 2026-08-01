@@ -2,9 +2,9 @@ export type Customer = {
   id: string
   code: string
   name: string
-  phone: string | null
   total_amount: number
-  monthly_amount: number
+  status: 'active' | 'defaulted'
+  admin_name?: string | null
   created_at: string
 }
 

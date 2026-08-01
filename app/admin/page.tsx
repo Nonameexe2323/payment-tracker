@@ -5,12 +5,22 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer } from '@/lib/types'
 
-function genCode() {
+async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  for (let attempt = 0; attempt < 20; attempt++) {
+    let s = ''
+    for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)]
+    const { data } = await supabase.from('customers').select('id').eq('code', s).maybeSingle()
+    if (!data) return s
+  }
+  // Fallback 6 chars if 5-char space somehow collides repeatedly
   let s = ''
-  for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)]
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)]
   return s
 }
+
+type FilterType = 'all' | 'active' | 'defaulted'
+type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
 
 export default function AdminPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -18,10 +28,18 @@ export default function AdminPage() {
   const [pendingMap, setPendingMap] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [total, setTotal] = useState('')
-  const [monthly, setMonthly] = useState('')
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [filter, setFilter] = useState<FilterType>('all')
+
+  // Modal states
+  const [modal, setModal] = useState<ModalType>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editTotal, setEditTotal] = useState('')
+  const [adminName, setAdminName] = useState('')
+  const [editAdminName, setEditAdminName] = useState('')
+  const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   async function loadCustomers() {
     const { data: custs } = await supabase
@@ -55,13 +73,12 @@ export default function AdminPage() {
       setMsg({ type: 'err', text: 'กรุณากรอกชื่อลูกค้าและยอดผ่อนรวมให้เรียบร้อยนะ' })
       return
     }
-    const code = genCode()
+    const code = await genUniqueCode()
     const { error } = await supabase.from('customers').insert({
       code,
       name: name.trim(),
-      phone: phone.trim() || null,
       total_amount: Number(total),
-      monthly_amount: Number(monthly) || 0,
+      admin_name: adminName.trim() || null,
     })
     if (error) {
       setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง' })
@@ -69,17 +86,115 @@ export default function AdminPage() {
     }
     setMsg({ type: 'ok', text: `เพิ่มลูกค้าเรียบร้อยแล้ว! รหัสผ่อนคือ: ${code}` })
     setName('')
-    setPhone('')
     setTotal('')
-    setMonthly('')
+    setAdminName('')
     loadCustomers()
   }
 
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.code.toLowerCase().includes(search.toLowerCase())
-  )
+  // --- Action handlers ---
+  function openEditModal(c: Customer) {
+    setSelectedCustomer(c)
+    setEditName(c.name)
+    setEditTotal(String(c.total_amount))
+    setEditAdminName(c.admin_name || '')
+    setModalMsg(null)
+    setModal('edit')
+  }
+
+  async function saveEdit() {
+    if (!selectedCustomer) return
+    setModalMsg(null)
+    if (!editName.trim() || !editTotal || Number(editTotal) <= 0) {
+      setModalMsg({ type: 'err', text: 'กรุณากรอกข้อมูลให้ครบถ้วน' })
+      return
+    }
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedCustomer.id,
+          name: editName.trim(),
+          total_amount: Number(editTotal),
+          admin_name: editAdminName.trim() || null
+        })
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        setModalMsg({ type: 'err', text: result.error || 'เกิดข้อผิดพลาดในการบันทึก' })
+        return
+      }
+      setModal(null)
+      loadCustomers()
+    } catch {
+      setModalMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึก' })
+    }
+  }
+
+  function openDefaultModal(c: Customer) {
+    setSelectedCustomer(c)
+    setModal(c.status === 'defaulted' ? 'restore' : 'default')
+  }
+
+  async function confirmDefault() {
+    if (!selectedCustomer) return
+    const newStatus = selectedCustomer.status === 'defaulted' ? 'active' : 'defaulted'
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedCustomer.id, status: newStatus })
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown error'))
+        return
+      }
+      setModal(null)
+      loadCustomers()
+    } catch {
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ')
+    }
+  }
+
+  function openDeleteModal(c: Customer) {
+    setSelectedCustomer(c)
+    setModal('delete')
+  }
+
+  async function confirmDelete() {
+    if (!selectedCustomer) return
+    try {
+      const res = await fetch(`/api/customers?id=${selectedCustomer.id}`, {
+        method: 'DELETE'
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown error'))
+        return
+      }
+      setModal(null)
+      loadCustomers()
+    } catch {
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ')
+    }
+  }
+
+  // --- Filtering ---
+  const filtered = customers
+    .filter((c) => {
+      if (filter === 'active') return c.status !== 'defaulted'
+      if (filter === 'defaulted') return c.status === 'defaulted'
+      return true
+    })
+    .filter(
+      (c) =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.code.toLowerCase().includes(search.toLowerCase())
+    )
+
+  const activeCount = customers.filter(c => c.status !== 'defaulted').length
+  const defaultedCount = customers.filter(c => c.status === 'defaulted').length
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
@@ -135,17 +250,6 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">เบอร์โทรศัพท์ติดต่อ</label>
-                <input
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="08X-XXX-XXXX"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
                 <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
                 <input
                   type="number"
@@ -155,16 +259,18 @@ export default function AdminPage() {
                   placeholder="0.00"
                 />
               </div>
-              <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ค่างวดต่อเดือน (บาท)</label>
-                <input
-                  type="number"
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={monthly}
-                  onChange={(e) => setMonthly(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                <span>แอดมินผู้ดูแล (ลูกค้าจะไม่เห็นส่วนนี้)</span>
+                <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+              </label>
+              <input
+                className="input-field w-full px-3.5 py-2 text-sm"
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="เช่น แอดมิน A, แอดมินไก่"
+              />
             </div>
           </div>
 
@@ -207,6 +313,28 @@ export default function AdminPage() {
             <span className="badge badge-cyan font-bold">{customers.length} รายการ</span>
           </div>
 
+          {/* Filter Tabs */}
+          <div className="filter-tabs">
+            <span
+              onClick={() => setFilter('all')}
+              className={`filter-tab ${filter === 'all' ? 'filter-tab-active' : ''}`}
+            >
+              ทั้งหมด ({customers.length})
+            </span>
+            <span
+              onClick={() => setFilter('active')}
+              className={`filter-tab ${filter === 'active' ? 'filter-tab-active' : ''}`}
+            >
+              กำลังผ่อน ({activeCount})
+            </span>
+            <span
+              onClick={() => setFilter('defaulted')}
+              className={`filter-tab ${filter === 'defaulted' ? 'filter-tab-active' : ''}`}
+            >
+              หลุดผ่อน ({defaultedCount})
+            </span>
+          </div>
+
           {/* Search Input */}
           <div className="relative mb-4">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -235,43 +363,240 @@ export default function AdminPage() {
             {filtered.map((c, i) => {
               const cPaid = paidMap[c.id] || 0
               const cPct = Math.min(100, Math.round((cPaid / c.total_amount) * 100))
+              const isDefaulted = c.status === 'defaulted'
               return (
-                <Link
+                <div
                   key={c.id}
-                  href={`/admin/${c.code}`}
-                  className="list-item flex justify-between items-center px-4 py-3 group"
+                  className={`list-item px-4 py-3 ${isDefaulted ? 'list-item-defaulted' : ''}`}
                   style={{ animation: `fadeInUp 0.3s ease-out ${0.03 * i}s both` }}
                 >
-                  <div className="min-w-0 pr-2">
-                    <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2">
-                      {c.name}
-                      {pendingMap[c.id] > 0 && (
-                        <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm">รอตรวจ {pendingMap[c.id]}</span>
+                  <div className="flex justify-between items-center">
+                    <Link href={`/admin/${c.code}`} className="min-w-0 pr-2 group flex-1">
+                      <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2 group-hover:text-[var(--accent-blue)] transition-colors">
+                        {c.name}
+                        {isDefaulted && (
+                          <span className="badge badge-danger text-[10px] py-0.5 px-2">หลุดผ่อน</span>
+                        )}
+                        {!isDefaulted && pendingMap[c.id] > 0 && (
+                          <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm">รอตรวจ {pendingMap[c.id]}</span>
+                        )}
+                        {!isDefaulted && cPct >= 100 && (
+                          <span className="badge badge-good text-[10px] py-0.5 px-2">✓ ครบแล้ว</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="font-mono bg-[var(--bg-panel-soft)] text-[var(--accent-blue)] px-2 py-0.5 rounded-full border border-[var(--border-soft)] font-bold text-[0.7rem]">{c.code}</span>
+                        <span>ผ่อนแล้ว {cPct}%</span>
+                        {c.admin_name && (
+                          <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 font-semibold flex items-center gap-1">
+                            👤 {c.admin_name}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-bold">
+                        <span className="text-[var(--accent-blue)]">{cPaid.toLocaleString('th-TH')}</span>
+                        <span className="text-xs text-[var(--text-muted)] font-normal"> / {c.total_amount.toLocaleString('th-TH')} ฿</span>
+                      </div>
+                      <div className="w-24 h-2 rounded-full bg-[var(--bar-bg)] mt-1.5 ml-auto overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[var(--accent-blue)] transition-all duration-500"
+                          style={{ width: `${cPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-[var(--border-soft)]">
+                    <button onClick={() => openEditModal(c)} className="btn-action btn-action-edit">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      แก้ไข
+                    </button>
+                    <button onClick={() => openDefaultModal(c)} className={`btn-action ${isDefaulted ? 'btn-action-restore' : 'btn-action-default'}`}>
+                      {isDefaulted ? (
+                        <>
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          คืนสถานะ
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                          </svg>
+                          หลุดผ่อน
+                        </>
                       )}
-                    </div>
-                    <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1">
-                      <span className="font-mono bg-[var(--bg-panel-soft)] text-[var(--accent-blue)] px-2 py-0.5 rounded-full border border-[var(--border-soft)] font-bold text-[0.7rem]">{c.code}</span>
-                      <span>ผ่อนแล้ว {cPct}%</span>
-                    </div>
+                    </button>
+                    <button onClick={() => openDeleteModal(c)} className="btn-action btn-action-delete">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      ลบ
+                    </button>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-bold">
-                      <span className="text-[var(--accent-blue)]">{cPaid.toLocaleString('th-TH')}</span>
-                      <span className="text-xs text-[var(--text-muted)] font-normal"> / {c.total_amount.toLocaleString('th-TH')} ฿</span>
-                    </div>
-                    <div className="w-24 h-2 rounded-full bg-[var(--bar-bg)] mt-1.5 ml-auto overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[var(--accent-blue)] transition-all duration-500"
-                        style={{ width: `${cPct}%` }}
-                      />
-                    </div>
-                  </div>
-                </Link>
+                </div>
               )
             })}
           </div>
         </div>
       </div>
+
+      {/* ═══ EDIT MODAL ═══ */}
+      {modal === 'edit' && selectedCustomer && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setModal(null)} className="modal-close">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="modal-title">
+              <svg className="w-5 h-5 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              แก้ไขข้อมูลลูกค้า
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล *</label>
+                <input
+                  className="input-field w-full px-3.5 py-2 text-sm"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
+                <input
+                  type="number"
+                  className="input-field w-full px-3.5 py-2 text-sm"
+                  value={editTotal}
+                  onChange={(e) => setEditTotal(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                  <span>แอดมินผู้ดูแล</span>
+                  <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+                </label>
+                <input
+                  className="input-field w-full px-3.5 py-2 text-sm"
+                  value={editAdminName}
+                  onChange={(e) => setEditAdminName(e.target.value)}
+                  placeholder="เช่น แอดมิน A"
+                />
+              </div>
+              {modalMsg && (
+                <div className={`text-xs px-3.5 py-2.5 flex items-center gap-2 font-medium ${modalMsg.type === 'ok' ? 'alert-ok' : 'alert-err'}`}>
+                  {modalMsg.text}
+                </div>
+              )}
+              <button onClick={saveEdit} className="btn-primary w-full py-2.5 text-sm font-bold">
+                บันทึกการแก้ไข
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ DEFAULT / RESTORE CONFIRM ═══ */}
+      {(modal === 'default' || modal === 'restore') && selectedCustomer && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-dialog">
+              <div className={`confirm-icon ${modal === 'default' ? 'confirm-icon-warning' : 'confirm-icon-danger'}`}>
+                {modal === 'default' ? (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="confirm-title">
+                {modal === 'default' ? 'ยืนยันหลุดผ่อน?' : 'คืนสถานะผ่อนชำระ?'}
+              </h3>
+              <p className="confirm-desc">
+                {modal === 'default'
+                  ? `ต้องการมาร์ก "${selectedCustomer.name}" เป็นหลุดผ่อนใช่ไหม? สามารถคืนสถานะได้ภายหลัง`
+                  : `ต้องการคืนสถานะ "${selectedCustomer.name}" กลับเป็นผ่อนชำระปกติใช่ไหม?`
+                }
+              </p>
+              <div className="confirm-actions">
+                <button onClick={() => setModal(null)} className="btn-outline flex-1 py-2.5 text-sm font-bold">
+                  ยกเลิก
+                </button>
+                <button onClick={confirmDefault} className={`${modal === 'default' ? 'btn-warning' : 'btn-primary'} py-2.5 text-sm font-bold`}>
+                  {modal === 'default' ? 'ยืนยันหลุดผ่อน' : 'คืนสถานะ'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ DELETE CONFIRM (Step 1) ═══ */}
+      {modal === 'delete' && selectedCustomer && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-dialog">
+              <div className="confirm-icon confirm-icon-danger">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="confirm-title">ลบข้อมูลลูกค้า?</h3>
+              <p className="confirm-desc">
+                ต้องการลบ &quot;{selectedCustomer.name}&quot; และข้อมูลการชำระเงินทั้งหมดใช่ไหม?<br />
+                <strong style={{ color: 'var(--danger)' }}>⚠️ การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
+              </p>
+              <div className="confirm-actions">
+                <button onClick={() => setModal(null)} className="btn-outline flex-1 py-2.5 text-sm font-bold">
+                  ยกเลิก
+                </button>
+                <button onClick={() => setModal('delete-confirm')} className="btn-danger py-2.5 text-sm font-bold">
+                  ยืนยันลบ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ DELETE CONFIRM (Step 2) ═══ */}
+      {modal === 'delete-confirm' && selectedCustomer && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-dialog">
+              <div className="confirm-icon confirm-icon-danger">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="confirm-title" style={{ color: 'var(--danger)' }}>ยืนยันอีกครั้ง!</h3>
+              <p className="confirm-desc">
+                ข้อมูลทั้งหมดของ &quot;{selectedCustomer.name}&quot; จะถูกลบถาวร รวมถึงประวัติการชำระเงินทั้งหมด
+              </p>
+              <div className="confirm-actions">
+                <button onClick={() => setModal(null)} className="btn-outline flex-1 py-2.5 text-sm font-bold">
+                  ยกเลิก
+                </button>
+                <button onClick={confirmDelete} className="btn-danger py-2.5 text-sm font-bold">
+                  🗑️ ลบถาวร
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
