@@ -32,6 +32,7 @@ export default function AdminPage() {
   const [total, setTotal] = useState('')
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [filter, setFilter] = useState<FilterType>('all')
+  const [selectedAdmin, setSelectedAdmin] = useState<string>('all')
 
   // Modal states
   const [modal, setModal] = useState<ModalType>(null)
@@ -68,6 +69,21 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadCustomers()
+
+    // Supabase Realtime subscription
+    const channel = supabase
+      .channel('admin-page-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
+        loadCustomers()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+        loadCustomers()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   async function addCustomer() {
@@ -187,11 +203,20 @@ export default function AdminPage() {
     }
   }
 
+  // Extract list of unique admin names
+  const adminOptions = Array.from(new Set(customers.map(c => c.admin_name).filter(Boolean))) as string[]
+
   // --- Filtering ---
   const filtered = customers
     .filter((c) => {
       if (filter === 'active') return c.status !== 'defaulted'
       if (filter === 'defaulted') return c.status === 'defaulted'
+      return true
+    })
+    .filter((c) => {
+      if (selectedAdmin !== 'all') {
+        return c.admin_name === selectedAdmin
+      }
       return true
     })
     .filter(
@@ -404,17 +429,42 @@ export default function AdminPage() {
             </span>
           </div>
 
-          {/* Search Input */}
-          <div className="relative mb-4">
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              className="input-field w-full pl-10 pr-3.5 py-2 text-sm"
-              placeholder="ค้นหาตามชื่อลูกค้า, รหัสผ่อน หรือ ชื่อแอดมินผู้ดูแล..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          {/* Admin Filter Dropdown & Search Input */}
+          <div className="space-y-3 mb-4">
+            {adminOptions.length > 0 && (
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)]">
+                <label className="text-xs font-bold text-[var(--text-muted)] flex items-center gap-1.5 shrink-0">
+                  <svg className="w-3.5 h-3.5 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  กรองแอดมินผู้ดูแล:
+                </label>
+                <select
+                  value={selectedAdmin}
+                  onChange={(e) => setSelectedAdmin(e.target.value)}
+                  className="input-field text-xs py-1.5 px-3 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-panel-soft)] font-bold text-[var(--accent-blue)] cursor-pointer outline-none max-w-[210px] truncate"
+                >
+                  <option value="all">แอดมินทุกคน ({customers.length})</option>
+                  {adminOptions.map((admin) => (
+                    <option key={admin} value={admin}>
+                      👤 {admin} ({customers.filter((c) => c.admin_name === admin).length} รายการ)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="relative">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                className="input-field w-full pl-10 pr-3.5 py-2 text-sm"
+                placeholder="ค้นหาตามชื่อลูกค้า, รหัสผ่อน หรือ ชื่อแอดมินผู้ดูแล..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* List */}

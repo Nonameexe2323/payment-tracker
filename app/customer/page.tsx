@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
@@ -22,15 +22,37 @@ export default function CustomerPage() {
   async function loadReceipt(customer: Customer) {
     setLoading(true)
     setError('')
+    const { data: custData } = await supabase.from('customers').select('*').eq('id', customer.id).single()
+    const currentCustomer = custData || customer
+
     const { data } = await supabase
       .from('payments')
       .select('*')
-      .eq('customer_id', customer.id)
+      .eq('customer_id', currentCustomer.id)
       .order('paid_at', { ascending: false })
     setPayments(data || [])
-    setSelected(customer)
+    setSelected(currentCustomer)
     setLoading(false)
   }
+
+  // Realtime subscription for customer page
+  useEffect(() => {
+    if (!selected) return
+
+    const channel = supabase
+      .channel(`customer-realtime-${selected.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `id=eq.${selected.id}` }, () => {
+        loadReceipt(selected)
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments', filter: `customer_id=eq.${selected.id}` }, () => {
+        loadReceipt(selected)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [selected?.id])
 
   async function searchByCode() {
     setError('')

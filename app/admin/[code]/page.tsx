@@ -50,6 +50,20 @@ export default function CustomerDetailPage() {
 
   useEffect(() => {
     loadData()
+
+    const channel = supabase
+      .channel(`admin-detail-realtime-${code}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
+        loadData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+        loadData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [code])
 
   async function recordPayment() {
