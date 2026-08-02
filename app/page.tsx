@@ -29,18 +29,26 @@ export default function Home() {
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3.5">
             <Link href="/customer" className="btn-primary py-4 text-base font-bold flex items-center justify-center gap-2.5 group">
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               👤 สำหรับลูกค้า (เช็คยอดผ่อน)
             </Link>
+
+            <Link href="/catalog" className="btn-outline py-4 text-base font-extrabold flex items-center justify-center gap-2.5 !bg-[var(--accent-blue-soft)] !text-[var(--accent-blue)] !border-[var(--accent-blue)]/40 hover:!bg-[var(--accent-blue)] hover:!text-white group transition-all shadow-sm">
+              <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              🎮 ดูไอดีเพิ่มเติม (คลังสินค้าพร้อมขาย)
+            </Link>
+
             <Link href="/admin" className="btn-outline py-4 text-base font-semibold flex items-center justify-center gap-2.5">
               <svg className="w-5 h-5 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-              🏪 สำหรับร้านค้า (จัดการยอดผ่อน)
+              🏪 สำหรับร้านค้า (ระบบแอดมิน)
             </Link>
           </div>
 

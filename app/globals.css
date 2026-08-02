@@ -781,3 +781,81 @@ body {
   --gold: #fbbf24;
   --gold-soft: rgba(251, 191, 36, 0.15);
 }
+
+/* ─── Admin Nav Tabs ─── */
+.nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  background: var(--stat-bg);
+  border-radius: 1.25rem;
+  border: 2px solid var(--border-soft);
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+  border-radius: 0.875rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-muted);
+  user-select: none;
+  background: transparent;
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+.nav-tab:hover {
+  color: var(--text-primary);
+  background: var(--list-bg-hover);
+}
+.nav-tab-active {
+  background: var(--accent-blue);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+}
+.nav-tab-active:hover {
+  background: var(--accent-blue);
+  color: white;
+}
+
+/* ─── Profit Colors ─── */
+.profit-positive {
+  color: var(--badge-good-text);
+}
+.profit-negative {
+  color: var(--danger);
+}
+
+/* ─── Month Group ─── */
+.month-group {
+  border: 2px solid var(--border-soft);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: var(--list-bg);
+}
+
+.month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--stat-bg);
+  border-bottom: 1.5px solid var(--border-soft);
+  flex-wrap: wrap;
+}
+
+.month-group .space-y-2 {
+  padding: 0.5rem;
+}
+
+.month-group .list-item {
+  border-radius: 1rem;
+}

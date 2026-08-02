@@ -19,3 +19,29 @@ export type Payment = {
   approved_by?: string | null
   approved_at?: string | null
 }
+
+export type IdSale = {
+  id: string
+  game_id: string
+  game_name?: string | null
+  buy_price: number
+  sell_price: number
+  profit: number
+  admin_name?: string | null
+  sold_at: string
+  created_at: string
+}
+
+export type StockId = {
+  id: string
+  code: string
+  title: string
+  game_name: string
+  price_cash: number
+  price_installment?: number | null
+  details?: string | null
+  image_url?: string | null
+  status: 'available' | 'reserved' | 'sold'
+  admin_name?: string | null
+  created_at: string
+}

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer } from '@/lib/types'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
+import IdSalesPanel from '@/app/components/IdSalesPanel'
+import StockIdsPanel from '@/app/components/StockIdsPanel'
 
 async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -22,6 +24,7 @@ async function genUniqueCode() {
 
 type FilterType = 'all' | 'active' | 'defaulted'
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
+type AdminTab = 'installments' | 'id-sales' | 'stock-ids'
 
 export default function AdminPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -33,6 +36,7 @@ export default function AdminPage() {
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedAdmin, setSelectedAdmin] = useState<string>('all')
+  const [activeTab, setActiveTab] = useState<AdminTab>('installments')
 
   // Modal states
   const [modal, setModal] = useState<ModalType>(null)
@@ -248,7 +252,7 @@ export default function AdminPage() {
               </svg>
               ระบบจัดการร้านค้า Jiksaw Shop
             </h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium">จัดการรายการผ่อนและเพิ่มลูกค้าผ่อนชำระ</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium">จัดการรายการผ่อนชำระ และบันทึกยอดขายไอดี</p>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-xs text-[var(--text-muted)] hover:text-[var(--accent-blue)] transition-colors inline-flex items-center gap-1 font-semibold">
@@ -268,6 +272,40 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
+
+        {/* ═══ ADMIN TAB NAVIGATION ═══ */}
+        <div className="nav-tabs mb-6">
+          <button
+            onClick={() => setActiveTab('installments')}
+            className={`nav-tab ${activeTab === 'installments' ? 'nav-tab-active' : ''}`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            📋 ระบบผ่อนชำระ
+          </button>
+          <button
+            onClick={() => setActiveTab('id-sales')}
+            className={`nav-tab ${activeTab === 'id-sales' ? 'nav-tab-active' : ''}`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            🎮 ยอดขายไอดี
+          </button>
+          <button
+            onClick={() => setActiveTab('stock-ids')}
+            className={`nav-tab ${activeTab === 'stock-ids' ? 'nav-tab-active' : ''}`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            🛒 ลงไอดีพร้อมขาย
+          </button>
+        </div>
+
+        {/* ═══ TAB: ระบบผ่อนชำระ ═══ */}
+        {activeTab === 'installments' && (<>
 
         {/* Dashboard Overall Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -569,6 +607,19 @@ export default function AdminPage() {
             })}
           </div>
         </div>
+
+      </>)}
+
+      {/* ═══ TAB: ยอดขายไอดี ═══ */}
+      {activeTab === 'id-sales' && (
+        <IdSalesPanel />
+      )}
+
+      {/* ═══ TAB: คลังไอดีพร้อมขาย ═══ */}
+      {activeTab === 'stock-ids' && (
+        <StockIdsPanel />
+      )}
+
       </div>
 
       {/* ═══ EDIT MODAL ═══ */}
