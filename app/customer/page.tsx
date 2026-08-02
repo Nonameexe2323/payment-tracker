@@ -266,10 +266,10 @@ export default function CustomerPage() {
         {selected && !loading && (
           <div className="panel p-6 sm:p-7">
             {/* Header info */}
-            <div className="flex items-start justify-between mb-5 pb-4 border-b border-[var(--border-soft)]">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-soft)]">
+              <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider block mb-1">สรุปรายการผ่อนชำระ</span>
-                <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                <h2 className="text-xl font-bold text-[var(--text-primary)] break-words">
                   {selected.name}
                 </h2>
                 <div className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1.5 font-mono">
@@ -277,19 +277,21 @@ export default function CustomerPage() {
                   <CopyCodeBadge code={selected.code} />
                 </div>
               </div>
-              {isDefaulted ? (
-                <span className="badge badge-danger font-bold text-xs py-1 px-2.5" title={analysis?.reason}>
-                  🔴 {analysis?.statusLabel || 'หลุดผ่อน'}
-                </span>
-              ) : isComplete ? (
-                <span className="badge badge-good font-bold text-xs py-1 px-2.5">✓ ชำระครบแล้ว</span>
-              ) : analysis?.isWarning ? (
-                <span className="bg-amber-500 text-white font-bold text-xs py-1 px-2.5 rounded-full shadow-sm">
-                  ⚠️ ใกล้หลุดผ่อน
-                </span>
-              ) : (
-                <span className="badge badge-gold font-bold text-xs py-1 px-2.5">กำลังผ่อนชำระ</span>
-              )}
+              <div className="self-start sm:self-auto">
+                {isDefaulted ? (
+                  <span className="badge badge-danger font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center" title={analysis?.reason}>
+                    🔴 {analysis?.statusLabel || 'หลุดผ่อน'}
+                  </span>
+                ) : isComplete ? (
+                  <span className="badge badge-good font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">✓ ชำระครบแล้ว</span>
+                ) : analysis?.isWarning ? (
+                  <span className="bg-amber-500 text-white font-bold text-xs py-1.5 px-3.5 rounded-full shadow-sm whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">
+                    ⚠️ ใกล้หลุดผ่อน
+                  </span>
+                ) : (
+                  <span className="badge badge-gold font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">🟢 กำลังผ่อนชำระ</span>
+                )}
+              </div>
             </div>
 
             {/* Installment Plan Rules & Policy Banner */}

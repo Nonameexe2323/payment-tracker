@@ -281,10 +281,10 @@ export default function CustomerDetailPage() {
           </button>
 
           {/* Statement Header */}
-          <div className="flex items-start justify-between mb-6 pb-6 border-b border-[var(--border-soft)]">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 pb-6 border-b border-[var(--border-soft)]">
+            <div className="flex-1 min-w-0">
               <div className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider mb-1">รายละเอียดผ่อนชำระ</div>
-              <h1 className="text-2xl font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h1 className="text-2xl font-extrabold text-[var(--text-primary)] tracking-tight break-words">
                 {customer.name}
               </h1>
               <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-muted)] flex-wrap">
@@ -304,19 +304,21 @@ export default function CustomerDetailPage() {
                 </div>
               )}
             </div>
-            {isDefaulted ? (
-              <span className="badge badge-danger font-bold text-xs py-1 px-3" title={analysis.reason}>
-                🔴 {analysis.statusLabel}
-              </span>
-            ) : isComplete ? (
-              <span className="badge badge-good font-bold text-xs py-1 px-3">✓ ผ่อนครบแล้ว</span>
-            ) : analysis.isWarning ? (
-              <span className="bg-amber-500 text-white font-bold text-xs py-1 px-3 rounded-full shadow-sm">
-                ⚠️ ใกล้หลุดผ่อน
-              </span>
-            ) : (
-              <span className="badge badge-cyan font-bold text-xs py-1 px-3">🟢 กำลังผ่อน (ปกติ)</span>
-            )}
+            <div className="self-start sm:self-auto">
+              {isDefaulted ? (
+                <span className="badge badge-danger font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center" title={analysis.reason}>
+                  🔴 {analysis.statusLabel}
+                </span>
+              ) : isComplete ? (
+                <span className="badge badge-good font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">✓ ผ่อนครบแล้ว</span>
+              ) : analysis.isWarning ? (
+                <span className="bg-amber-500 text-white font-bold text-xs py-1.5 px-3.5 rounded-full shadow-sm whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">
+                  ⚠️ ใกล้หลุดผ่อน
+                </span>
+              ) : (
+                <span className="badge badge-cyan font-bold text-xs py-1.5 px-3.5 whitespace-nowrap shrink-0 inline-flex items-center justify-center text-center">🟢 กำลังผ่อน (ปกติ)</span>
+              )}
+            </div>
           </div>
 
           {/* Policy & Due Date Banner */}
