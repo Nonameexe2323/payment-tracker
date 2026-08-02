@@ -29,6 +29,7 @@ export default function CustomerDetailPage() {
   const [editPlanType, setEditPlanType] = useState<'daily' | 'weekly'>('daily')
   const [editDueDate, setEditDueDate] = useState('')
   const [editWeeklyDay, setEditWeeklyDay] = useState<number>(1)
+  const [editMaxUnpaidDays, setEditMaxUnpaidDays] = useState<number>(3)
   const [editAdminName, setEditAdminName] = useState('')
   const [editAdminNote, setEditAdminNote] = useState('')
   const [showReceipt, setShowReceipt] = useState(false)
@@ -138,6 +139,7 @@ export default function CustomerDetailPage() {
     setEditPlanType(customer.plan_type || 'daily')
     setEditDueDate(customer.due_date || '')
     setEditWeeklyDay(customer.weekly_day ?? 1)
+    setEditMaxUnpaidDays(customer.max_unpaid_days ?? 3)
     setEditAdminName(customer.admin_name || '')
     setEditAdminNote(customer.admin_note || '')
     setModalMsg(null)
@@ -162,6 +164,7 @@ export default function CustomerDetailPage() {
           plan_type: editPlanType,
           due_date: editDueDate || null,
           weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
+          max_unpaid_days: Number(editMaxUnpaidDays) || 3,
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null
         })
@@ -673,9 +676,35 @@ export default function CustomerDetailPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
-                    <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3 py-2 font-medium">
-                      ⚠️ ไม่ส่งยอดครบ <span className="font-bold text-red-500">3 วัน</span> หลุดผ่อน
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                      ขาดส่งกี่วันถึงหลุดผ่อน? (วัน)
+                    </label>
+                    <div className="flex gap-1.5 items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        className="input-field w-full px-3 py-1.5 text-sm font-bold text-center"
+                        value={editMaxUnpaidDays}
+                        onChange={(e) => setEditMaxUnpaidDays(Math.max(1, Number(e.target.value)))}
+                      />
+                      <span className="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">วัน</span>
+                    </div>
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {[3, 4, 5, 7].map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setEditMaxUnpaidDays(d)}
+                          className={`px-2 py-0.5 text-[10px] rounded-md border font-semibold transition-all ${
+                            editMaxUnpaidDays === d
+                              ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                              : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                          }`}
+                        >
+                          {d} วัน {d === 3 ? '(มาตรฐาน)' : ''}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}

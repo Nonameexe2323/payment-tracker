@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [planType, setPlanType] = useState<'daily' | 'weekly'>('daily')
   const [dueDate, setDueDate] = useState('')
   const [weeklyDay, setWeeklyDay] = useState<number>(1) // 1 = Monday
+  const [maxUnpaidDays, setMaxUnpaidDays] = useState<number>(3)
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedAdmin, setSelectedAdmin] = useState<string>('all')
@@ -51,6 +52,7 @@ export default function AdminPage() {
   const [editPlanType, setEditPlanType] = useState<'daily' | 'weekly'>('daily')
   const [editDueDate, setEditDueDate] = useState('')
   const [editWeeklyDay, setEditWeeklyDay] = useState<number>(1)
+  const [editMaxUnpaidDays, setEditMaxUnpaidDays] = useState<number>(3)
   const [adminName, setAdminName] = useState('')
   const [editAdminName, setEditAdminName] = useState('')
   const [adminNote, setAdminNote] = useState('')
@@ -118,6 +120,7 @@ export default function AdminPage() {
       plan_type: planType,
       due_date: dueDate || null,
       weekly_day: planType === 'weekly' ? weeklyDay : null,
+      max_unpaid_days: Number(maxUnpaidDays) || 3,
       admin_name: adminName.trim() || null,
       admin_note: adminNote.trim() || null,
     })
@@ -131,6 +134,7 @@ export default function AdminPage() {
     setPlanType('daily')
     setDueDate('')
     setWeeklyDay(1)
+    setMaxUnpaidDays(3)
     setAdminName('')
     setAdminNote('')
     loadCustomers()
@@ -144,6 +148,7 @@ export default function AdminPage() {
     setEditPlanType(c.plan_type || 'daily')
     setEditDueDate(c.due_date || '')
     setEditWeeklyDay(c.weekly_day ?? 1)
+    setEditMaxUnpaidDays(c.max_unpaid_days ?? 3)
     setEditAdminName(c.admin_name || '')
     setEditAdminNote(c.admin_note || '')
     setModalMsg(null)
@@ -168,6 +173,7 @@ export default function AdminPage() {
           plan_type: editPlanType,
           due_date: editDueDate || null,
           weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
+          max_unpaid_days: Number(editMaxUnpaidDays) || 3,
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null
         })
@@ -457,9 +463,35 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
-                  <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3.5 py-2 font-medium">
-                    ⚠️ ไม่ส่งยอดติดต่อกัน <span className="font-bold text-red-500">ครบ 3 วัน</span> หลุดผ่อนทันที
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                    ขาดส่งกี่วันถึงหลุดผ่อน? (วัน)
+                  </label>
+                  <div className="flex gap-1.5 items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      className="input-field w-full px-3 py-1.5 text-sm font-bold text-center"
+                      value={maxUnpaidDays}
+                      onChange={(e) => setMaxUnpaidDays(Math.max(1, Number(e.target.value)))}
+                    />
+                    <span className="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">วัน</span>
+                  </div>
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    {[3, 4, 5, 7].map(d => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setMaxUnpaidDays(d)}
+                        className={`px-2 py-0.5 text-[10px] rounded-md border font-semibold transition-all ${
+                          maxUnpaidDays === d
+                            ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                            : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                        }`}
+                      >
+                        {d} วัน {d === 3 ? '(มาตรฐาน)' : ''}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -823,9 +855,35 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
-                    <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3 py-2 font-medium">
-                      ⚠️ ไม่ส่งยอดครบ <span className="font-bold text-red-500">3 วัน</span> หลุดผ่อน
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                      ขาดส่งกี่วันถึงหลุดผ่อน? (วัน)
+                    </label>
+                    <div className="flex gap-1.5 items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        className="input-field w-full px-3 py-1.5 text-sm font-bold text-center"
+                        value={editMaxUnpaidDays}
+                        onChange={(e) => setEditMaxUnpaidDays(Math.max(1, Number(e.target.value)))}
+                      />
+                      <span className="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">วัน</span>
+                    </div>
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {[3, 4, 5, 7].map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setEditMaxUnpaidDays(d)}
+                          className={`px-2 py-0.5 text-[10px] rounded-md border font-semibold transition-all ${
+                            editMaxUnpaidDays === d
+                              ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                              : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                          }`}
+                        >
+                          {d} วัน {d === 3 ? '(มาตรฐาน)' : ''}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}

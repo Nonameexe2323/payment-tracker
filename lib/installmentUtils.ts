@@ -85,15 +85,16 @@ export function checkInstallmentStatus(
       reason = 'ส่งยอดไม่ทันภายในวันที่ตกลงกันไว้ตอนผ่อน (หลุดผ่อนทันที)'
       statusLabel = 'หลุดผ่อน (เกินวันที่ตกลงไว้)'
     }
-    // Rule 1: Daily Plan -> Missing 3 days
+    // Rule 1: Daily Plan -> Missing max_unpaid_days (default: 3)
     else if (customer.plan_type === 'daily' || !customer.plan_type) {
-      if (daysSinceLastPayment >= 3) {
+      const maxDays = Number(customer.max_unpaid_days) > 0 ? Number(customer.max_unpaid_days) : 3
+      if (daysSinceLastPayment >= maxDays) {
         isDefaulted = true
-        reason = 'ไม่ได้ส่งยอดผ่อนติดต่อกันครบ 3 วัน'
-        statusLabel = 'หลุดผ่อน (ไม่ส่งยอด 3 วัน)'
-      } else if (daysSinceLastPayment === 2) {
+        reason = `ไม่ได้ส่งยอดผ่อนติดต่อกันครบ ${maxDays} วัน`
+        statusLabel = `หลุดผ่อน (ไม่ส่งยอด ${maxDays} วัน)`
+      } else if (daysSinceLastPayment >= maxDays - 1 && maxDays > 1) {
         isWarning = true
-        warningMessage = '⚠️ ไม่ได้ส่งยอด 2 วันติดต่อกันแล้ว (หากขาดส่งอีก 1 วันจะหลุดผ่อนทันที)'
+        warningMessage = `⚠️ ไม่ได้ส่งยอด ${daysSinceLastPayment} วันติดต่อกันแล้ว (หากขาดส่งอีก ${maxDays - daysSinceLastPayment} วันจะหลุดผ่อนทันที)`
       }
     }
     // Rule 2: Weekly Plan -> Missing weekly schedule
