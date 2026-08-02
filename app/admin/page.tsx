@@ -382,9 +382,9 @@ export default function AdminPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                <span>แอดมินผู้ดูแล ใส่ชื่อที่คนในเพจจำได้ (ลูกค้าจะไม่เห็นส่วนนี้)</span>
-                <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                <span>👤 แอดมินผู้ดูแล (ลูกค้าจะไม่เห็นส่วนนี้)</span>
+                <span className="text-[10px] text-[var(--accent-blue)] font-normal shrink-0">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
               </label>
               <input
                 className="input-field w-full px-3.5 py-2 text-sm"
@@ -394,9 +394,9 @@ export default function AdminPage() {
               />
             </div>
             <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                <span>หมายเหตุสัญญา / โน้ตแอดมิน จะใส่หรือไม่ใส่ก็ได้นะ (ลูกค้าจะไม่เห็นส่วนนี้)</span>
-                <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                <span>📝 หมายเหตุสัญญา / โน้ตแอดมิน (ลูกค้าจะไม่เห็นส่วนนี้)</span>
+                <span className="text-[10px] text-[var(--accent-blue)] font-normal shrink-0">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
               </label>
               <textarea
                 className="input-field w-full px-3.5 py-2 text-sm min-h-[70px] resize-y py-2.5"
