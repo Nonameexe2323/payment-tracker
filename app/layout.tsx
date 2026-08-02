@@ -76,8 +76,10 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Animated Background Mesh & Floating Orbs */}
+        {/* Animated Background Image with Blur & Dark Overlay */}
         <div className="animated-bg-container" aria-hidden="true">
+          <div className="bg-image-layer" />
+          <div className="bg-overlay-dark" />
           <div className="bg-blob blob-1" />
           <div className="bg-blob blob-2" />
           <div className="bg-blob blob-3" />
