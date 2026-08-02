@@ -328,7 +328,7 @@ export default function CustomerDetailPage() {
               <span className="text-[var(--text-muted)] font-medium">
                 {customer.plan_type === 'weekly'
                   ? `กำหนดส่งยอดทุกวัน${getThaiDayName(customer.weekly_day)}`
-                  : 'ไม่ส่งยอดผ่อนติดต่อกัน 3 วันหลุดผ่อน'}
+                  : `ไม่ส่งยอดผ่อนติดต่อกัน ${customer.max_unpaid_days ?? 3} วันหลุดผ่อน`}
               </span>
             </div>
 

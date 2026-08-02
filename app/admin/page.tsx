@@ -661,23 +661,23 @@ export default function AdminPage() {
                 >
                   <div className="flex justify-between items-center">
                     <Link href={`/admin/${c.code}`} className="min-w-0 pr-2 group flex-1">
-                      <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2 flex-wrap group-hover:text-[var(--accent-blue)] transition-colors">
-                        <span>{c.name}</span>
+                      <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2 flex-wrap group-hover:text-[var(--accent-blue)] transition-colors">
+                        <span className="truncate max-w-[220px]">{c.name}</span>
                         {isDefaulted && (
-                          <span className="badge badge-danger text-[10px] py-0.5 px-2 font-bold" title={analysis.reason}>
+                          <span className="badge badge-danger text-[10px] py-0.5 px-2 font-bold shrink-0" title={analysis.reason}>
                             🔴 {analysis.statusLabel}
                           </span>
                         )}
                         {!isDefaulted && analysis.isWarning && (
-                          <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
-                            {analysis.warningMessage}
+                          <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm shrink-0">
+                            ⚠️ ขาดส่ง {analysis.daysSinceLastPayment} วัน (ใกล้หลุดผ่อน)
                           </span>
                         )}
                         {!isDefaulted && pendingMap[c.id] > 0 && (
-                          <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm">รอตรวจ {pendingMap[c.id]}</span>
+                          <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm shrink-0">รอตรวจ {pendingMap[c.id]}</span>
                         )}
                         {!isDefaulted && cPct >= 100 && (
-                          <span className="badge badge-good text-[10px] py-0.5 px-2">✓ ครบแล้ว</span>
+                          <span className="badge badge-good text-[10px] py-0.5 px-2 shrink-0">✓ ครบแล้ว</span>
                         )}
                       </div>
                       <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1 flex-wrap">
@@ -705,6 +705,12 @@ export default function AdminPage() {
                           </span>
                         )}
                       </div>
+
+                      {!isDefaulted && analysis.isWarning && (
+                        <div className="mt-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 leading-relaxed whitespace-normal break-words">
+                          <span>{analysis.warningMessage}</span>
+                        </div>
+                      )}
                     </Link>
                     <div className="text-right shrink-0">
                       <div className="text-sm font-bold">
