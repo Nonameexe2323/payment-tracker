@@ -303,11 +303,11 @@ export default function StockIdsPanel() {
           ลงประกาศไอดีพร้อมขายใหม่
         </h2>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                <span>เลขไอดี + อิโมจิ</span>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                เลขไอดี + อิโมจิ *
               </label>
               <input
                 className="input-field w-full px-3.5 py-2 text-sm font-mono"
@@ -348,7 +348,7 @@ export default function StockIdsPanel() {
               />
             </div>
             <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">📝 ราคารวมผ่อน (บาท) (ถ้ามี)</label>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">📝 ราคารวมผ่อน (บาท)</label>
               <input
                 type="number"
                 className="input-field w-full px-3.5 py-2 text-sm"
@@ -358,7 +358,7 @@ export default function StockIdsPanel() {
                 min="0"
               />
             </div>
-            <div className="sm:col-span-2 lg:col-span-1">
+            <div className="sm:col-span-2 lg:col-span-2">
               <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
                 <span>👤 ชื่อแอดมิน</span>
                 <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
