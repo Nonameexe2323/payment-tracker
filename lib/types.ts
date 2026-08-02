@@ -4,6 +4,9 @@ export type Customer = {
   name: string
   total_amount: number
   status: 'active' | 'defaulted'
+  plan_type?: 'daily' | 'weekly' | null
+  due_date?: string | null
+  weekly_day?: number | null // 0=Sun, 1=Mon, ..., 6=Sat
   admin_name?: string | null
   admin_note?: string | null
   created_at: string

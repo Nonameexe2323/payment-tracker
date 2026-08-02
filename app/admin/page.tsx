@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { Customer } from '@/lib/types'
+import { Customer, Payment } from '@/lib/types'
+import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 import IdSalesPanel from '@/app/components/IdSalesPanel'
 import StockIdsPanel from '@/app/components/StockIdsPanel'
@@ -30,9 +31,13 @@ export default function AdminPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [paidMap, setPaidMap] = useState<Record<string, number>>({})
   const [pendingMap, setPendingMap] = useState<Record<string, number>>({})
+  const [custPaymentsMap, setCustPaymentsMap] = useState<Record<string, Payment[]>>({})
   const [search, setSearch] = useState('')
   const [name, setName] = useState('')
   const [total, setTotal] = useState('')
+  const [planType, setPlanType] = useState<'daily' | 'weekly'>('daily')
+  const [dueDate, setDueDate] = useState('')
+  const [weeklyDay, setWeeklyDay] = useState<number>(1) // 1 = Monday
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedAdmin, setSelectedAdmin] = useState<string>('all')
@@ -43,6 +48,9 @@ export default function AdminPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [editName, setEditName] = useState('')
   const [editTotal, setEditTotal] = useState('')
+  const [editPlanType, setEditPlanType] = useState<'daily' | 'weekly'>('daily')
+  const [editDueDate, setEditDueDate] = useState('')
+  const [editWeeklyDay, setEditWeeklyDay] = useState<number>(1)
   const [adminName, setAdminName] = useState('')
   const [editAdminName, setEditAdminName] = useState('')
   const [adminNote, setAdminNote] = useState('')
@@ -56,10 +64,15 @@ export default function AdminPage() {
       .order('created_at', { ascending: false })
     setCustomers(custs || [])
 
-    const { data: payments } = await supabase.from('payments').select('customer_id, amount, status')
+    const { data: payments } = await supabase.from('payments').select('*')
     const map: Record<string, number> = {}
     const pMap: Record<string, number> = {}
-    payments?.forEach((p: { customer_id: string; amount: number; status: string }) => {
+    const pListMap: Record<string, Payment[]> = {}
+
+    payments?.forEach((p: Payment) => {
+      if (!pListMap[p.customer_id]) pListMap[p.customer_id] = []
+      pListMap[p.customer_id].push(p)
+
       if (p.status !== 'pending' && p.status !== 'rejected') {
         map[p.customer_id] = (map[p.customer_id] || 0) + Number(p.amount)
       }
@@ -69,6 +82,7 @@ export default function AdminPage() {
     })
     setPaidMap(map)
     setPendingMap(pMap)
+    setCustPaymentsMap(pListMap)
   }
 
   useEffect(() => {
@@ -101,6 +115,9 @@ export default function AdminPage() {
       code,
       name: name.trim(),
       total_amount: Number(total),
+      plan_type: planType,
+      due_date: dueDate || null,
+      weekly_day: planType === 'weekly' ? weeklyDay : null,
       admin_name: adminName.trim() || null,
       admin_note: adminNote.trim() || null,
     })
@@ -111,6 +128,9 @@ export default function AdminPage() {
     setMsg({ type: 'ok', text: `เพิ่มลูกค้าเรียบร้อยแล้ว! รหัสผ่อนคือ: ${code}` })
     setName('')
     setTotal('')
+    setPlanType('daily')
+    setDueDate('')
+    setWeeklyDay(1)
     setAdminName('')
     setAdminNote('')
     loadCustomers()
@@ -121,6 +141,9 @@ export default function AdminPage() {
     setSelectedCustomer(c)
     setEditName(c.name)
     setEditTotal(String(c.total_amount))
+    setEditPlanType(c.plan_type || 'daily')
+    setEditDueDate(c.due_date || '')
+    setEditWeeklyDay(c.weekly_day ?? 1)
     setEditAdminName(c.admin_name || '')
     setEditAdminNote(c.admin_note || '')
     setModalMsg(null)
@@ -142,6 +165,9 @@ export default function AdminPage() {
           id: selectedCustomer.id,
           name: editName.trim(),
           total_amount: Number(editTotal),
+          plan_type: editPlanType,
+          due_date: editDueDate || null,
+          weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null
         })
@@ -381,6 +407,77 @@ export default function AdminPage() {
                 />
               </div>
             </div>
+
+            {/* Installment Plan Selection & Due Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">รอบการผ่อนชำระ *</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPlanType('daily')}
+                    className={`py-2 px-3 text-xs rounded-xl font-bold border transition-all ${
+                      planType === 'daily'
+                        ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                        : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                    }`}
+                  >
+                    ☀️ ผ่อนรายวัน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPlanType('weekly')}
+                    className={`py-2 px-3 text-xs rounded-xl font-bold border transition-all ${
+                      planType === 'weekly'
+                        ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                        : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                    }`}
+                  >
+                    📅 ผ่อนรายอาทิตย์
+                  </button>
+                </div>
+              </div>
+
+              {planType === 'weekly' ? (
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">วันส่งยอดประจำสัปดาห์</label>
+                  <select
+                    className="input-field w-full px-3.5 py-2 text-sm"
+                    value={weeklyDay}
+                    onChange={(e) => setWeeklyDay(Number(e.target.value))}
+                  >
+                    <option value={1}>วันจันทร์</option>
+                    <option value={2}>วันอังคาร</option>
+                    <option value={3}>วันพุธ</option>
+                    <option value={4}>วันพฤหัสบดี</option>
+                    <option value={5}>วันศุกร์</option>
+                    <option value={6}>วันเสาร์</option>
+                    <option value={0}>วันอาทิตย์</option>
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
+                  <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3.5 py-2 font-medium">
+                    ⚠️ ไม่ส่งยอดติดต่อกัน <span className="font-bold text-red-500">ครบ 3 วัน</span> หลุดผ่อนทันที
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                ⏳ วันครบกำหนดผ่อนสิ้นสุด (วันที่ตกลงกันไว้)
+              </label>
+              <input
+                type="date"
+                className="input-field w-full px-3.5 py-2 text-sm"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+              <p className="text-[11px] text-[var(--text-muted)] mt-1">หากเกินกำหนดวันที่ระบุแล้วยังผ่อนไม่หมด จะถือว่าหลุดผ่อนทันที</p>
+            </div>
+
             <div>
               <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
                 <span>👤 แอดมินผู้ดูแล (ลูกค้าจะไม่เห็นส่วนนี้)</span>
@@ -520,7 +617,8 @@ export default function AdminPage() {
             {filtered.map((c, i) => {
               const cPaid = paidMap[c.id] || 0
               const cPct = Math.min(100, Math.round((cPaid / c.total_amount) * 100))
-              const isDefaulted = c.status === 'defaulted'
+              const analysis = checkInstallmentStatus(c, custPaymentsMap[c.id] || [])
+              const isDefaulted = analysis.isDefaulted || c.status === 'defaulted'
               return (
                 <div
                   key={c.id}
@@ -529,10 +627,17 @@ export default function AdminPage() {
                 >
                   <div className="flex justify-between items-center">
                     <Link href={`/admin/${c.code}`} className="min-w-0 pr-2 group flex-1">
-                      <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2 group-hover:text-[var(--accent-blue)] transition-colors">
-                        {c.name}
+                      <div className="font-bold text-sm truncate text-[var(--text-primary)] flex items-center gap-2 flex-wrap group-hover:text-[var(--accent-blue)] transition-colors">
+                        <span>{c.name}</span>
                         {isDefaulted && (
-                          <span className="badge badge-danger text-[10px] py-0.5 px-2">หลุดผ่อน</span>
+                          <span className="badge badge-danger text-[10px] py-0.5 px-2 font-bold" title={analysis.reason}>
+                            🔴 {analysis.statusLabel}
+                          </span>
+                        )}
+                        {!isDefaulted && analysis.isWarning && (
+                          <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
+                            {analysis.warningMessage}
+                          </span>
                         )}
                         {!isDefaulted && pendingMap[c.id] > 0 && (
                           <span className="text-[10px] bg-[var(--gold)] text-white px-2 py-0.5 rounded-full shadow-sm">รอตรวจ {pendingMap[c.id]}</span>
@@ -543,7 +648,18 @@ export default function AdminPage() {
                       </div>
                       <div className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-1 flex-wrap">
                         <CopyCodeBadge code={c.code} />
-                        <span>ผ่อนแล้ว {cPct}%</span>
+                        <span className="font-medium text-[11px] bg-[var(--stat-bg)] px-2 py-0.5 rounded-md border border-[var(--border-soft)]">
+                          {c.plan_type === 'weekly' ? `📅 ผ่อนรายอาทิตย์ (วัน${getThaiDayName(c.weekly_day)})` : '☀️ ผ่อนรายวัน'}
+                        </span>
+                        {c.due_date && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
+                            analysis.daysUntilDueDate !== null && analysis.daysUntilDueDate < 0
+                              ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                              : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                          }`}>
+                            ⏳ {analysis.daysUntilDueDate !== null && analysis.daysUntilDueDate >= 0 ? `เหลือ ${analysis.daysUntilDueDate} วัน` : 'เกินกำหนดเวลา'}
+                          </span>
+                        )}
                         {c.admin_name && (
                           <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 font-semibold flex items-center gap-1">
                             👤 {c.admin_name}
@@ -625,7 +741,7 @@ export default function AdminPage() {
       {/* ═══ EDIT MODAL ═══ */}
       {modal === 'edit' && selectedCustomer && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content max-w-lg" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setModal(null)} className="modal-close">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -638,23 +754,95 @@ export default function AdminPage() {
               แก้ไขข้อมูลลูกค้า
             </h3>
             <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล *</label>
+                  <input
+                    className="input-field w-full px-3.5 py-2 text-sm"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
+                  <input
+                    type="number"
+                    className="input-field w-full px-3.5 py-2 text-sm"
+                    value={editTotal}
+                    onChange={(e) => setEditTotal(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Installment Plan Edit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">รอบการผ่อนชำระ *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditPlanType('daily')}
+                      className={`py-2 px-2 text-xs rounded-xl font-bold border transition-all ${
+                        editPlanType === 'daily'
+                          ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                          : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                      }`}
+                    >
+                      ☀️ รายวัน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditPlanType('weekly')}
+                      className={`py-2 px-2 text-xs rounded-xl font-bold border transition-all ${
+                        editPlanType === 'weekly'
+                          ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                          : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                      }`}
+                    >
+                      📅 รายอาทิตย์
+                    </button>
+                  </div>
+                </div>
+
+                {editPlanType === 'weekly' ? (
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">วันส่งยอดประจำสัปดาห์</label>
+                    <select
+                      className="input-field w-full px-3.5 py-2 text-sm"
+                      value={editWeeklyDay}
+                      onChange={(e) => setEditWeeklyDay(Number(e.target.value))}
+                    >
+                      <option value={1}>วันจันทร์</option>
+                      <option value={2}>วันอังคาร</option>
+                      <option value={3}>วันพุธ</option>
+                      <option value={4}>วันพฤหัสบดี</option>
+                      <option value={5}>วันศุกร์</option>
+                      <option value={6}>วันเสาร์</option>
+                      <option value={0}>วันอาทิตย์</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
+                    <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3 py-2 font-medium">
+                      ⚠️ ไม่ส่งยอดครบ <span className="font-bold text-red-500">3 วัน</span> หลุดผ่อน
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล *</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                  ⏳ วันครบกำหนดผ่อนสิ้นสุด (วันที่ตกลงกันไว้)
+                </label>
                 <input
+                  type="date"
                   className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
                 />
               </div>
-              <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
-                <input
-                  type="number"
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editTotal}
-                  onChange={(e) => setEditTotal(e.target.value)}
-                />
-              </div>
+
               <div>
                 <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
                   <span>แอดมินผู้ดูแล</span>

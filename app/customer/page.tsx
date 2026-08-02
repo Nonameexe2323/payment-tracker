@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
+import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 
@@ -136,11 +137,13 @@ export default function CustomerPage() {
     }
   }
 
-  // Count only approved or older payments (where status is null or not pending/rejected)
-  const paid = payments.filter(p => p.status !== 'pending' && p.status !== 'rejected').reduce((s, p) => s + Number(p.amount), 0)
-  const remain = selected ? Math.max(selected.total_amount - paid, 0) : 0
-  const pct = selected ? Math.min(100, Math.round((paid / selected.total_amount) * 100)) : 0
-  const isComplete = pct >= 100
+  // Installment analysis calculation
+  const analysis = selected ? checkInstallmentStatus(selected, payments) : null
+  const paid = analysis ? analysis.totalPaid : 0
+  const remain = analysis ? analysis.remainingAmount : 0
+  const pct = analysis ? analysis.progressPercent : 0
+  const isComplete = analysis ? analysis.isCompleted : false
+  const isDefaulted = analysis ? (analysis.isDefaulted || selected?.status === 'defaulted') : false
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
@@ -274,13 +277,57 @@ export default function CustomerPage() {
                   <CopyCodeBadge code={selected.code} />
                 </div>
               </div>
-              {selected.status === 'defaulted' ? (
-                <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
+              {isDefaulted ? (
+                <span className="badge badge-danger font-bold text-xs py-1 px-2.5" title={analysis?.reason}>
+                  🔴 {analysis?.statusLabel || 'หลุดผ่อน'}
+                </span>
               ) : isComplete ? (
-                <span className="badge badge-good font-bold">✓ ชำระครบแล้ว</span>
+                <span className="badge badge-good font-bold text-xs py-1 px-2.5">✓ ชำระครบแล้ว</span>
+              ) : analysis?.isWarning ? (
+                <span className="bg-amber-500 text-white font-bold text-xs py-1 px-2.5 rounded-full shadow-sm">
+                  ⚠️ ใกล้หลุดผ่อน
+                </span>
               ) : (
-                <span className="badge badge-gold font-bold">กำลังผ่อนชำระ</span>
+                <span className="badge badge-gold font-bold text-xs py-1 px-2.5">กำลังผ่อนชำระ</span>
               )}
+            </div>
+
+            {/* Installment Plan Rules & Policy Banner */}
+            <div className="mb-5 p-4 rounded-2xl bg-[var(--stat-bg)] border border-[var(--border-soft)] space-y-2 text-xs">
+              <div className="flex items-center justify-between flex-wrap gap-1 font-semibold">
+                <span className="text-[var(--text-primary)] flex items-center gap-1">
+                  {selected.plan_type === 'weekly' ? '📅 รอบการผ่อนรายอาทิตย์' : '☀️ รอบการผ่อนรายวัน'}
+                </span>
+                <span className="text-[var(--accent-blue)] font-bold">
+                  {selected.plan_type === 'weekly'
+                    ? `ส่งยอดทุกวัน${getThaiDayName(selected.weekly_day)}`
+                    : 'ไม่ส่งยอดผ่อนครบ 3 วันถือว่าหลุดผ่อน'}
+                </span>
+              </div>
+
+              {selected.due_date && (
+                <div className="flex items-center justify-between border-t border-[var(--border-soft)] pt-2 mt-2 flex-wrap gap-1">
+                  <span className="text-[var(--text-muted)]">⏳ วันครบกำหนดผ่อนสุดท้าย:</span>
+                  <span className={`font-bold ${
+                    analysis?.daysUntilDueDate !== null && analysis?.daysUntilDueDate !== undefined && analysis.daysUntilDueDate < 0
+                      ? 'text-red-500'
+                      : 'text-[var(--accent-blue)]'
+                  }`}>
+                    {selected.due_date} {analysis?.daysUntilDueDate !== null && analysis?.daysUntilDueDate !== undefined && (
+                      analysis.daysUntilDueDate >= 0 ? `(เหลืออีก ${analysis.daysUntilDueDate} วัน)` : '(เกินกำหนดเวลา)'
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {/* Rules hint */}
+              <div className="text-[11px] text-[var(--text-muted)] border-t border-[var(--border-soft)] pt-2 mt-2 leading-relaxed">
+                📌 <strong>กฎการผ่อนชำระของเพจ:</strong>{' '}
+                {selected.plan_type === 'weekly'
+                  ? `ต้องส่งยอดภายในวัน${getThaiDayName(selected.weekly_day)}ของทุกสัปดาห์`
+                  : 'ต้องส่งยอดชำระอย่างน้อย 1 ครั้งภายในทุกๆ 3 วัน'}{' '}
+                {selected.due_date ? `และต้องผ่อนยอดครบทั้งหมดภายในวันที่ ${selected.due_date}` : ''}
+              </div>
             </div>
 
             {/* Total Balance highlight */}
@@ -315,7 +362,7 @@ export default function CustomerPage() {
             </div>
 
             {/* Defaulted Notice */}
-            {selected.status === 'defaulted' && (
+            {isDefaulted && (
               <div className="mb-6 p-4 rounded-xl bg-[var(--danger-soft)] border border-[rgba(239,68,68,0.3)]">
                 <div className="flex items-center gap-2 text-sm font-bold text-[var(--danger)]">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -323,7 +370,19 @@ export default function CustomerPage() {
                   </svg>
                   รายการนี้หลุดผ่อนแล้ว
                 </div>
-                <p className="text-xs text-[var(--text-muted)] mt-1">กรุณาติดต่อร้านค้าเพื่อดำเนินการต่อ</p>
+                <p className="text-xs text-red-500 font-semibold mt-1">
+                  สาเหตุ: {analysis?.reason || 'หลุดผ่อนตามเงื่อนไขข้อตกลง'}
+                </p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-1">กรุณาติดต่อเพจร้านค้าเพื่อสอบถามข้อมูลเพิ่มเติม</p>
+              </div>
+            )}
+
+            {/* Warning Notice */}
+            {!isDefaulted && analysis?.isWarning && (
+              <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <div className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <span>{analysis.warningMessage}</span>
+                </div>
               </div>
             )}
 

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
+import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 
@@ -25,6 +26,9 @@ export default function CustomerDetailPage() {
   const [modal, setModal] = useState<ModalType>(null)
   const [editName, setEditName] = useState('')
   const [editTotal, setEditTotal] = useState('')
+  const [editPlanType, setEditPlanType] = useState<'daily' | 'weekly'>('daily')
+  const [editDueDate, setEditDueDate] = useState('')
+  const [editWeeklyDay, setEditWeeklyDay] = useState<number>(1)
   const [editAdminName, setEditAdminName] = useState('')
   const [editAdminNote, setEditAdminNote] = useState('')
   const [showReceipt, setShowReceipt] = useState(false)
@@ -131,6 +135,9 @@ export default function CustomerDetailPage() {
     if (!customer) return
     setEditName(customer.name)
     setEditTotal(String(customer.total_amount))
+    setEditPlanType(customer.plan_type || 'daily')
+    setEditDueDate(customer.due_date || '')
+    setEditWeeklyDay(customer.weekly_day ?? 1)
     setEditAdminName(customer.admin_name || '')
     setEditAdminNote(customer.admin_note || '')
     setModalMsg(null)
@@ -152,6 +159,9 @@ export default function CustomerDetailPage() {
           id: customer.id,
           name: editName.trim(),
           total_amount: Number(editTotal),
+          plan_type: editPlanType,
+          due_date: editDueDate || null,
+          weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null
         })
@@ -245,11 +255,12 @@ export default function CustomerDetailPage() {
     )
   }
 
-  const isDefaulted = customer.status === 'defaulted'
-  const paid = payments.filter(p => p.status !== 'pending' && p.status !== 'rejected').reduce((s, p) => s + Number(p.amount), 0)
-  const remain = Math.max(customer.total_amount - paid, 0)
-  const pct = Math.min(100, Math.round((paid / customer.total_amount) * 100))
-  const isComplete = pct >= 100
+  const analysis = checkInstallmentStatus(customer, payments)
+  const isDefaulted = analysis.isDefaulted || customer.status === 'defaulted'
+  const paid = analysis.totalPaid
+  const remain = analysis.remainingAmount
+  const pct = analysis.progressPercent
+  const isComplete = analysis.isCompleted
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
@@ -291,11 +302,59 @@ export default function CustomerDetailPage() {
               )}
             </div>
             {isDefaulted ? (
-              <span className="badge badge-danger font-bold">🚫 หลุดผ่อน</span>
+              <span className="badge badge-danger font-bold text-xs py-1 px-3" title={analysis.reason}>
+                🔴 {analysis.statusLabel}
+              </span>
             ) : isComplete ? (
-              <span className="badge badge-good font-bold">✓ ผ่อนครบแล้ว</span>
+              <span className="badge badge-good font-bold text-xs py-1 px-3">✓ ผ่อนครบแล้ว</span>
+            ) : analysis.isWarning ? (
+              <span className="bg-amber-500 text-white font-bold text-xs py-1 px-3 rounded-full shadow-sm">
+                ⚠️ ใกล้หลุดผ่อน
+              </span>
             ) : (
-              <span className="badge badge-gold font-bold">กำลังผ่อน</span>
+              <span className="badge badge-cyan font-bold text-xs py-1 px-3">🟢 กำลังผ่อน (ปกติ)</span>
+            )}
+          </div>
+
+          {/* Policy & Due Date Banner */}
+          <div className="mb-6 p-4 rounded-2xl bg-[var(--stat-bg)] border border-[var(--border-soft)] space-y-2">
+            <div className="flex items-center justify-between text-xs flex-wrap gap-2">
+              <span className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                {customer.plan_type === 'weekly' ? '📅 รอบผ่อนรายอาทิตย์' : '☀️ รอบผ่อนรายวัน'}
+              </span>
+              <span className="text-[var(--text-muted)] font-medium">
+                {customer.plan_type === 'weekly'
+                  ? `กำหนดส่งยอดทุกวัน${getThaiDayName(customer.weekly_day)}`
+                  : 'ไม่ส่งยอดผ่อนติดต่อกัน 3 วันหลุดผ่อน'}
+              </span>
+            </div>
+
+            {customer.due_date && (
+              <div className="flex items-center justify-between text-xs border-t border-[var(--border-soft)] pt-2 mt-2 flex-wrap gap-2">
+                <span className="text-[var(--text-muted)]">⏳ วันครบกำหนดผ่อนที่ตกลงไว้:</span>
+                <span className={`font-bold ${
+                  analysis.daysUntilDueDate !== null && analysis.daysUntilDueDate < 0
+                    ? 'text-red-500'
+                    : 'text-[var(--accent-blue)]'
+                }`}>
+                  {customer.due_date} {analysis.daysUntilDueDate !== null && (
+                    analysis.daysUntilDueDate >= 0 ? `(เหลืออีก ${analysis.daysUntilDueDate} วัน)` : '(เกินกำหนดเวลา!)'
+                  )}
+                </span>
+              </div>
+            )}
+
+            {isDefaulted && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold flex items-center gap-2 mt-2">
+                <span>🔴 สาเหตุการหลุดผ่อน:</span>
+                <span>{analysis.reason || 'หลุดผ่อนตามเงื่อนไข'}</span>
+              </div>
+            )}
+
+            {!isDefaulted && analysis.isWarning && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2 mt-2">
+                <span>{analysis.warningMessage}</span>
+              </div>
             )}
           </div>
 
@@ -532,7 +591,7 @@ export default function CustomerDetailPage() {
       {/* ═══ EDIT MODAL ═══ */}
       {modal === 'edit' && customer && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content max-w-lg" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setModal(null)} className="modal-close">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -545,23 +604,95 @@ export default function CustomerDetailPage() {
               แก้ไขข้อมูลลูกค้า
             </h3>
             <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล *</label>
+                  <input
+                    className="input-field w-full px-3.5 py-2 text-sm"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
+                  <input
+                    type="number"
+                    className="input-field w-full px-3.5 py-2 text-sm"
+                    value={editTotal}
+                    onChange={(e) => setEditTotal(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Installment Plan Edit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">รอบการผ่อนชำระ *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditPlanType('daily')}
+                      className={`py-2 px-2 text-xs rounded-xl font-bold border transition-all ${
+                        editPlanType === 'daily'
+                          ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                          : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                      }`}
+                    >
+                      ☀️ รายวัน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditPlanType('weekly')}
+                      className={`py-2 px-2 text-xs rounded-xl font-bold border transition-all ${
+                        editPlanType === 'weekly'
+                          ? 'bg-[var(--accent-blue)] text-white border-[var(--accent-blue)] shadow-sm'
+                          : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
+                      }`}
+                    >
+                      📅 รายอาทิตย์
+                    </button>
+                  </div>
+                </div>
+
+                {editPlanType === 'weekly' ? (
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">วันส่งยอดประจำสัปดาห์</label>
+                    <select
+                      className="input-field w-full px-3.5 py-2 text-sm"
+                      value={editWeeklyDay}
+                      onChange={(e) => setEditWeeklyDay(Number(e.target.value))}
+                    >
+                      <option value={1}>วันจันทร์</option>
+                      <option value={2}>วันอังคาร</option>
+                      <option value={3}>วันพุธ</option>
+                      <option value={4}>วันพฤหัสบดี</option>
+                      <option value={5}>วันศุกร์</option>
+                      <option value={6}>วันเสาร์</option>
+                      <option value={0}>วันอาทิตย์</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">กฎผ่อนรายวัน</label>
+                    <div className="text-xs text-[var(--text-muted)] bg-[var(--stat-bg)] border border-[var(--border-soft)] rounded-xl px-3 py-2 font-medium">
+                      ⚠️ ไม่ส่งยอดครบ <span className="font-bold text-red-500">3 วัน</span> หลุดผ่อน
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ชื่อ-นามสกุล *</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                  ⏳ วันครบกำหนดผ่อนสิ้นสุด (วันที่ตกลงกันไว้)
+                </label>
                 <input
+                  type="date"
                   className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
                 />
               </div>
-              <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">ยอดผ่อนทั้งหมด (บาท) *</label>
-                <input
-                  type="number"
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editTotal}
-                  onChange={(e) => setEditTotal(e.target.value)}
-                />
-              </div>
+
               <div>
                 <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
                   <span>แอดมินผู้ดูแล</span>
