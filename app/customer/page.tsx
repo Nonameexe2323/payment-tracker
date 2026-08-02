@@ -118,6 +118,7 @@ export default function CustomerPage() {
         body: JSON.stringify({
           paymentCode: selected.code,
           customerName: selected.name,
+          adminName: selected.admin_name,
           amount: Number(payAmount),
           slipUrl
         })

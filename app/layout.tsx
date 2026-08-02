@@ -12,8 +12,27 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "Jiksaw Shop — ระบบเช็คและจัดการยอดผ่อนชำระ",
-  description: "ระบบจัดการและติดตามยอดผ่อนชำระสินค้าสำหรับร้านค้าและลูกค้า",
+  title: "Jiksaw Shop — ระบบเช็คยอดผ่อนและ ดูไอดีที่เหลือภายในร้าน",
+  description: "ระบบจัดการและติดตามยอดผ่อนชำระสินค้า พร้อมเช็คสท็อกไอดีเกมที่เหลือภายในร้าน Jiksaw Shop",
+  openGraph: {
+    title: "Jiksaw Shop — ระบบเช็คยอดผ่อนและ ดูไอดีที่เหลือภายในร้าน",
+    description: "ระบบจัดการและติดตามยอดผ่อนชำระสินค้า พร้อมเช็คสท็อกไอดีเกมที่เหลือภายในร้าน Jiksaw Shop",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 675,
+        alt: "Jiksaw Shop",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jiksaw Shop — ระบบเช็คยอดผ่อนและ ดูไอดีที่เหลือภายในร้าน",
+    description: "ระบบจัดการและติดตามยอดผ่อนชำระสินค้า พร้อมเช็คสท็อกไอดีเกมที่เหลือภายในร้าน Jiksaw Shop",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export const viewport: Viewport = {

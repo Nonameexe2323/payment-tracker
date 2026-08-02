@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { paymentCode, customerName, amount, slipUrl } = body
+    const { paymentCode, customerName, amount, slipUrl, adminName } = body
 
     const lineToken = process.env.LINE_CHANNEL_ACCESS_TOKEN
     const groupId = process.env.LINE_GROUP_ID
@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'LINE credentials missing' }, { status: 500 })
     }
 
-    const message = `แจ้งเตือนสลิปใหม่!\n\nรหัสผ่อน: ${paymentCode}\nชื่อลูกค้า: ${customerName}\nยอดเงิน: ${amount} บาท\n\nดูสลิปและอนุมัติได้ที่ระบบแอดมิน\nหรือคลิกดูสลิป: ${slipUrl}`
+    const adminText = adminName ? `\nแอดมินผู้ดูแล: ${adminName}` : ''
+
+    const message = `แจ้งเตือนสลิปใหม่!\n\nรหัสผ่อน: ${paymentCode}\nชื่อลูกค้า: ${customerName}${adminText}\nยอดเงิน: ${amount} บาท\n\nดูสลิปและอนุมัติได้ที่ระบบแอดมิน\nหรือคลิกดูสลิป: ${slipUrl}`
 
     const response = await fetch('https://api.line.me/v2/bot/message/push', {
       method: 'POST',
