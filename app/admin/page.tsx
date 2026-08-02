@@ -497,30 +497,32 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
-                ⏳ วันครบกำหนดผ่อนสิ้นสุด (วันที่ตกลงกันไว้)
-              </label>
-              <input
-                type="date"
-                className="input-field w-full px-3.5 py-2 text-sm"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-              <p className="text-[11px] text-[var(--text-muted)] mt-1">หากเกินกำหนดวันที่ระบุแล้วยังผ่อนไม่หมด จะถือว่าหลุดผ่อนทันที</p>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                  ⏳ วันครบกำหนดผ่อนสิ้นสุด
+                </label>
+                <input
+                  type="date"
+                  className="input-field w-full max-w-full min-w-0 box-border px-3.5 py-2 text-sm"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+                <p className="text-[11px] text-[var(--text-muted)] mt-1">หากเกินกำหนดจะถือว่าหลุดผ่อน</p>
+              </div>
 
-            <div>
-              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
-                <span>👤 แอดมินผู้ดูแล (ลูกค้าจะไม่เห็นส่วนนี้)</span>
-                <span className="text-[10px] text-[var(--accent-blue)] font-normal shrink-0">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
-              </label>
-              <input
-                className="input-field w-full px-3.5 py-2 text-sm"
-                value={adminName}
-                onChange={(e) => setAdminName(e.target.value)}
-                placeholder="เช่น หัวเพจ ไอหนวด"
-              />
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                  <span>👤 แอดมินผู้ดูแล</span>
+                  <span className="text-[10px] text-[var(--accent-blue)] font-normal shrink-0">🔒 แอดมินเท่านั้น</span>
+                </label>
+                <input
+                  className="input-field w-full max-w-full min-w-0 box-border px-3.5 py-2 text-sm"
+                  value={adminName}
+                  onChange={(e) => setAdminName(e.target.value)}
+                  placeholder="เช่น หัวเพจ ไอหนวด"
+                />
+              </div>
             </div>
             <div>
               <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
@@ -889,29 +891,31 @@ export default function AdminPage() {
                 )}
               </div>
 
-              <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
-                  ⏳ วันครบกำหนดผ่อนสิ้นสุด (วันที่ตกลงกันไว้)
-                </label>
-                <input
-                  type="date"
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editDueDate}
-                  onChange={(e) => setEditDueDate(e.target.value)}
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold">
+                    ⏳ วันครบกำหนดผ่อนสิ้นสุด
+                  </label>
+                  <input
+                    type="date"
+                    className="input-field w-full max-w-full min-w-0 box-border px-3.5 py-2 text-sm"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                  />
+                </div>
 
-              <div>
-                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
-                  <span>แอดมินผู้ดูแล</span>
-                  <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 เห็นเฉพาะฝั่งแอดมิน</span>
-                </label>
-                <input
-                  className="input-field w-full px-3.5 py-2 text-sm"
-                  value={editAdminName}
-                  onChange={(e) => setEditAdminName(e.target.value)}
-                  placeholder="เช่น แอดมิน A"
-                />
+                <div>
+                  <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
+                    <span>แอดมินผู้ดูแล</span>
+                    <span className="text-[10px] text-[var(--accent-blue)] font-normal">🔒 แอดมินเท่านั้น</span>
+                  </label>
+                  <input
+                    className="input-field w-full max-w-full min-w-0 box-border px-3.5 py-2 text-sm"
+                    value={editAdminName}
+                    onChange={(e) => setEditAdminName(e.target.value)}
+                    placeholder="เช่น แอดมิน A"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between">
