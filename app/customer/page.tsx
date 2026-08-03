@@ -7,6 +7,7 @@ import { Customer, Payment } from '@/lib/types'
 import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
+import ImageModal from '@/app/components/ImageModal'
 
 export default function CustomerPage() {
   const [codeInput, setCodeInput] = useState('')
@@ -19,6 +20,7 @@ export default function CustomerPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
+  const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
 
   async function loadReceipt(customer: Customer) {
     setLoading(true)
@@ -267,14 +269,34 @@ export default function CustomerPage() {
           <div className="panel p-6 sm:p-7">
             {/* Header info */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-soft)]">
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider block mb-1">สรุปรายการผ่อนชำระ</span>
-                <h2 className="text-xl font-bold text-[var(--text-primary)] break-words">
-                  {selected.name}
-                </h2>
-                <div className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1.5 font-mono">
-                  <span>รหัสผ่อน:</span>
-                  <CopyCodeBadge code={selected.code} />
+              <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                {selected.image_url && (
+                  <div
+                    onClick={() => setViewImg({ src: selected.image_url!, title: selected.name })}
+                    className="w-16 h-16 rounded-2xl overflow-hidden bg-[var(--stat-bg)] border border-[var(--border-soft)] shrink-0 flex items-center justify-center relative group cursor-pointer hover:border-[var(--accent-blue)] transition-all shadow-sm"
+                    title="คลิกเพื่อดูรูปภาพขนาดใหญ่"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={selected.image_url}
+                      alt={selected.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                      <span>🔍</span>
+                    </div>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider block mb-1">สรุปรายการผ่อนชำระ</span>
+                  <h2 className="text-xl font-bold text-[var(--text-primary)] break-words">
+                    {selected.name}
+                  </h2>
+                  <div className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1.5 font-mono">
+                    <span>รหัสผ่อน:</span>
+                    <CopyCodeBadge code={selected.code} />
+                  </div>
                 </div>
               </div>
               <div className="self-start sm:self-auto">
@@ -507,6 +529,14 @@ export default function CustomerPage() {
             customer={selected}
             payments={payments}
             onClose={() => setShowReceipt(false)}
+          />
+        )}
+        {/* Image Lightbox Modal */}
+        {viewImg && (
+          <ImageModal
+            src={viewImg.src}
+            alt={viewImg.title}
+            onClose={() => setViewImg(null)}
           />
         )}
       </div>

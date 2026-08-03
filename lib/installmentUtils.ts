@@ -15,6 +15,16 @@ export type InstallmentAnalysis = {
   warningMessage?: string
 }
 
+export function cleanImageUrl(url: string): string {
+  if (!url) return ''
+  const trimmed = url.trim()
+  const imgMatch = trimmed.match(/src=["']([^"']+)["']/i)
+  if (imgMatch && imgMatch[1]) return imgMatch[1]
+  const bbMatch = trimmed.match(/\[img\](.*?)\[\/img\]/i)
+  if (bbMatch && bbMatch[1]) return bbMatch[1]
+  return trimmed
+}
+
 const THAI_DAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์']
 
 export function getThaiDayName(dayIndex?: number | null): string {

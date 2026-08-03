@@ -10,6 +10,7 @@ export type Customer = {
   max_unpaid_days?: number | null // Days allowed without payment before default (default: 3)
   admin_name?: string | null
   admin_note?: string | null
+  image_url?: string | null
   created_at: string
 }
 

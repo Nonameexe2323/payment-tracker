@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { StockId } from '@/lib/types'
+import ImageModal from '@/app/components/ImageModal'
 
 const FACEBOOK_PAGE_URL = 'https://www.facebook.com/profile.php?id=100089517474962'
 
@@ -13,6 +14,7 @@ export default function CatalogPage() {
   const [search, setSearch] = useState('')
   const [selectedGame, setSelectedGame] = useState('all')
   const [selectedItem, setSelectedItem] = useState<StockId | null>(null)
+  const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
 
   async function loadCatalog() {
     try {
@@ -170,15 +172,31 @@ export default function CatalogPage() {
                   style={{ animation: `fadeInUp 0.3s ease-out ${0.04 * i}s both` }}
                 >
                   {/* Image Header / Thumbnail */}
-                  <div className="h-44 w-full bg-[var(--stat-bg)] relative overflow-hidden flex items-center justify-center border-b border-[var(--border-soft)]">
+                  <div
+                    className={`h-44 w-full bg-[var(--stat-bg)] relative overflow-hidden flex items-center justify-center border-b border-[var(--border-soft)] ${
+                      item.image_url ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={(e) => {
+                      if (item.image_url) {
+                        e.stopPropagation()
+                        setViewImg({ src: item.image_url, title: `${item.game_name} (${item.code})` })
+                      }
+                    }}
+                  >
                     {item.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                          <span>🔍</span>
+                          <span className="text-[10px]">คลิกดูรูปใหญ่</span>
+                        </div>
+                      </>
                     ) : (
                       <div className="text-center p-4">
                         <span className="text-4xl block mb-1 transform group-hover:scale-110 transition-transform">🎮</span>
@@ -288,15 +306,23 @@ export default function CatalogPage() {
               </svg>
             </button>
 
-            {/* Modal Image */}
+            {/* Detail Image */}
             {selectedItem.image_url && (
-              <div className="w-full max-h-80 rounded-xl overflow-hidden mb-4 border border-[var(--border-soft)] bg-black">
+              <div
+                onClick={() => setViewImg({ src: selectedItem.image_url!, title: `${selectedItem.game_name} (${selectedItem.code})` })}
+                className="w-full max-h-80 rounded-xl overflow-hidden mb-4 border border-[var(--border-soft)] bg-black relative group cursor-pointer"
+                title="คลิกเพื่อดูรูปภาพขนาดใหญ่"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={selectedItem.image_url}
                   alt={selectedItem.title}
-                  className="w-full h-full object-contain mx-auto"
+                  className="w-full h-full object-contain mx-auto group-hover:scale-105 transition-transform duration-300"
                 />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                  <span>🔍</span>
+                  <span>คลิกเพื่อขยายดูรูปเต็ม</span>
+                </div>
               </div>
             )}
 
@@ -373,6 +399,14 @@ export default function CatalogPage() {
             </a>
           </div>
         </div>
+      )}
+      {/* Image Lightbox Modal */}
+      {viewImg && (
+        <ImageModal
+          src={viewImg.src}
+          alt={viewImg.title}
+          onClose={() => setViewImg(null)}
+        />
       )}
     </main>
   )

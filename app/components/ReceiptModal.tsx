@@ -78,10 +78,23 @@ export default function ReceiptModal({ customer, payments, onClose }: ReceiptMod
           </div>
 
           {/* Customer Info */}
-          <div className="mb-4">
-            <span className="text-[11px] text-slate-400 block font-semibold mb-0.5">ชื่อลูกค้า</span>
-            <div className="text-lg font-bold text-white flex items-center gap-2">
-              {customer.name}
+          <div className="mb-4 flex items-center gap-3">
+            {customer.image_url && (
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 shrink-0 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={customer.image_url}
+                  alt={customer.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                />
+              </div>
+            )}
+            <div className="min-w-0">
+              <span className="text-[11px] text-slate-400 block font-semibold mb-0.5">ชื่อลูกค้า</span>
+              <div className="text-lg font-bold text-white flex items-center gap-2 truncate">
+                {customer.name}
+              </div>
             </div>
           </div>
 

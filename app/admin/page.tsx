@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
-import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
+import { checkInstallmentStatus, getThaiDayName, cleanImageUrl } from '@/lib/installmentUtils'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 import IdSalesPanel from '@/app/components/IdSalesPanel'
 import StockIdsPanel from '@/app/components/StockIdsPanel'
+import ImageModal from '@/app/components/ImageModal'
 
 async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -57,6 +58,9 @@ export default function AdminPage() {
   const [editAdminName, setEditAdminName] = useState('')
   const [adminNote, setAdminNote] = useState('')
   const [editAdminNote, setEditAdminNote] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [editImageUrl, setEditImageUrl] = useState('')
+  const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
   const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   async function loadCustomers() {
@@ -113,31 +117,42 @@ export default function AdminPage() {
       return
     }
     const code = await genUniqueCode()
-    const { error } = await supabase.from('customers').insert({
-      code,
-      name: name.trim(),
-      total_amount: Number(total),
-      plan_type: planType,
-      due_date: dueDate || null,
-      weekly_day: planType === 'weekly' ? weeklyDay : null,
-      max_unpaid_days: Number(maxUnpaidDays) || 3,
-      admin_name: adminName.trim() || null,
-      admin_note: adminNote.trim() || null,
-    })
-    if (error) {
-      setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง' })
-      return
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          name: name.trim(),
+          total_amount: Number(total),
+          plan_type: planType,
+          due_date: dueDate || null,
+          weekly_day: planType === 'weekly' ? weeklyDay : null,
+          max_unpaid_days: Number(maxUnpaidDays) || 3,
+          admin_name: adminName.trim() || null,
+          admin_note: adminNote.trim() || null,
+          image_url: imageUrl.trim() || null,
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        setMsg({ type: 'err', text: result.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' })
+        return
+      }
+      setMsg({ type: 'ok', text: `เพิ่มลูกค้าเรียบร้อยแล้ว! รหัสผ่อนคือ: ${code}` })
+      setName('')
+      setTotal('')
+      setPlanType('daily')
+      setDueDate('')
+      setWeeklyDay(1)
+      setMaxUnpaidDays(3)
+      setAdminName('')
+      setAdminNote('')
+      setImageUrl('')
+      loadCustomers()
+    } catch {
+      setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' })
     }
-    setMsg({ type: 'ok', text: `เพิ่มลูกค้าเรียบร้อยแล้ว! รหัสผ่อนคือ: ${code}` })
-    setName('')
-    setTotal('')
-    setPlanType('daily')
-    setDueDate('')
-    setWeeklyDay(1)
-    setMaxUnpaidDays(3)
-    setAdminName('')
-    setAdminNote('')
-    loadCustomers()
   }
 
   // --- Action handlers ---
@@ -151,6 +166,7 @@ export default function AdminPage() {
     setEditMaxUnpaidDays(c.max_unpaid_days ?? 3)
     setEditAdminName(c.admin_name || '')
     setEditAdminNote(c.admin_note || '')
+    setEditImageUrl(c.image_url || '')
     setModalMsg(null)
     setModal('edit')
   }
@@ -175,7 +191,8 @@ export default function AdminPage() {
           weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
           max_unpaid_days: Number(editMaxUnpaidDays) || 3,
           admin_name: editAdminName.trim() || null,
-          admin_note: editAdminNote.trim() || null
+          admin_note: editAdminNote.trim() || null,
+          image_url: editImageUrl.trim() || null,
         })
       })
       const result = await res.json()
@@ -536,6 +553,54 @@ export default function AdminPage() {
                 placeholder="ไอดีFreeFire Roblox ผ่อนสุดวันที่ 1 เดือน 8"
               />
             </div>
+
+            <div>
+              <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                <span>🖼️ ลิงก์รูปภาพไอดี/สินค้าผ่อน (Image URL)</span>
+                <span className="text-[11px] font-normal flex items-center gap-1.5">
+                  <span>🌐 เว็บฝากรูปฟรี:</span>
+                  <a href="https://imgbb.com/upload" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                    ImgBB (แนะนำ) ↗
+                  </a>
+                  <span className="opacity-40">|</span>
+                  <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                    Postimages ↗
+                  </a>
+                </span>
+              </label>
+              <input
+                type="text"
+                className="input-field w-full px-3.5 py-2 text-sm"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(cleanImageUrl(e.target.value))}
+                placeholder="https://... (คัดลอกจากเว็บฝากรูป'ลิงก์' ใน ImgBB)"
+              />
+
+              {imageUrl && imageUrl.includes('ibb.co/') && !imageUrl.includes('i.ibb.co/') && (
+                <div className="text-[11px] text-[var(--accent-gold)] mt-2 p-2.5 rounded-xl bg-[var(--accent-gold-soft)] border border-[var(--accent-gold)]/30 font-medium leading-relaxed">
+                  ⚠️ ลิงก์ที่วางเป็นลิงก์หน้าเว็บ (<code className="font-mono text-xs">ibb.co/...</code>) รูปจึงไม่ขึ้นครับ<br />
+                  👉 <strong>วิธีแก้:</strong> คลิกขวาที่รูปบนเว็บ ImgBB แล้วกด <strong>&quot;คัดลอกที่อยู่อิเมจ&quot; (Copy image address)</strong> นำมาวางแทนครับ (ลิงก์ที่ถูกต้องจะเป็น <code className="font-mono text-xs">https://i.ibb.co/...</code>)
+                </div>
+              )}
+
+              {imageUrl && (
+                <div className="mt-2 p-2 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)] flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-[var(--border-soft)] flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt="preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                    />
+                  </div>
+                  <div className="text-xs min-w-0">
+                    <span className="font-bold block text-[var(--text-primary)]">🖼️ ตัวอย่างรูปภาพ (Live Preview)</span>
+                    <span className="text-[10px] text-[var(--text-muted)] block truncate">{imageUrl}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <button onClick={addCustomer} className="btn-primary w-full py-3 text-sm mt-5 font-bold">
@@ -659,7 +724,30 @@ export default function AdminPage() {
                   className={`list-item px-4 py-3 ${isDefaulted ? 'list-item-defaulted' : ''}`}
                   style={{ animation: `fadeInUp 0.3s ease-out ${0.03 * i}s both` }}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center gap-3">
+                    {/* Small Image Thumbnail */}
+                    {c.image_url && (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setViewImg({ src: c.image_url!, title: c.name })
+                        }}
+                        className="w-12 h-12 rounded-xl overflow-hidden bg-[var(--stat-bg)] border border-[var(--border-soft)] shrink-0 flex items-center justify-center relative group cursor-pointer hover:border-[var(--accent-blue)] transition-all shadow-sm"
+                        title="คลิกเพื่อดูรูปภาพขนาดใหญ่"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={c.image_url}
+                          alt={c.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px]">
+                          🔍
+                        </div>
+                      </div>
+                    )}
+
                     <Link href={`/admin/${c.code}`} className="min-w-0 pr-2 group flex-1">
                       <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2 flex-wrap group-hover:text-[var(--accent-blue)] transition-colors">
                         <span className="truncate max-w-[220px]">{c.name}</span>
@@ -935,6 +1023,54 @@ export default function AdminPage() {
                   placeholder="เช่น ผ่อนไอดี Roblox / ขอนัดโอนทุกวันที่ 5"
                 />
               </div>
+
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                  <span>🔗 ลิงก์รูปภาพประกอบ (Image URL)</span>
+                  <span className="text-[11px] font-normal flex items-center gap-1.5">
+                    <span>🌐 เว็บฝากรูปฟรี:</span>
+                    <a href="https://imgbb.com/upload" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                      ImgBB ↗
+                    </a>
+                    <span className="opacity-40">|</span>
+                    <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                      Postimages ↗
+                    </a>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  className="input-field w-full px-3.5 py-2 text-sm"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(cleanImageUrl(e.target.value))}
+                  placeholder="https://... (คัดลอกจาก Facebook เพจ หรือเลือก 'ลิงก์' ใน ImgBB)"
+                />
+
+                {editImageUrl && editImageUrl.includes('ibb.co/') && !editImageUrl.includes('i.ibb.co/') && (
+                  <div className="text-[11px] text-[var(--accent-gold)] mt-2 p-2.5 rounded-xl bg-[var(--accent-gold-soft)] border border-[var(--accent-gold)]/30 font-medium leading-relaxed">
+                    ⚠️ ลิงก์ที่วางเป็นลิงก์หน้าเว็บ (<code className="font-mono text-xs">ibb.co/...</code>) รูปจึงไม่ขึ้นครับ<br />
+                    👉 <strong>วิธีแก้:</strong> คลิกขวาที่รูปบนเว็บ ImgBB แล้วกด <strong>&quot;คัดลอกที่อยู่อิเมจ&quot; (Copy image address)</strong> นำมาวางแทนครับ (ลิงก์ที่ถูกต้องจะเป็น <code className="font-mono text-xs">https://i.ibb.co/...</code>)
+                  </div>
+                )}
+
+                {editImageUrl && (
+                  <div className="mt-2 p-2 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)] flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-[var(--border-soft)] flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={editImageUrl}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                      />
+                    </div>
+                    <div className="text-xs min-w-0">
+                      <span className="font-bold block text-[var(--text-primary)]">🖼️ ตัวอย่างรูปภาพ (Live Preview)</span>
+                      <span className="text-[10px] text-[var(--text-muted)] block truncate">{editImageUrl}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
               {modalMsg && (
                 <div className={`text-xs px-3.5 py-2.5 flex items-center gap-2 font-medium ${modalMsg.type === 'ok' ? 'alert-ok' : 'alert-err'}`}>
                   {modalMsg.text}
@@ -1039,6 +1175,15 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Lightbox Modal */}
+      {viewImg && (
+        <ImageModal
+          src={viewImg.src}
+          alt={viewImg.title}
+          onClose={() => setViewImg(null)}
+        />
       )}
     </main>
   )

@@ -1,11 +1,61 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+// POST — Create customer
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { code, name, total_amount, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_note, image_url } = body
+
+    if (!code || !name || !total_amount) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const payload: Record<string, unknown> = {
+      code,
+      name: name.trim(),
+      total_amount: Number(total_amount),
+      plan_type: plan_type || 'daily',
+      due_date: due_date || null,
+      weekly_day: plan_type === 'weekly' ? weekly_day : null,
+      max_unpaid_days: Number(max_unpaid_days) || 3,
+      admin_name: admin_name?.trim() || null,
+      admin_note: admin_note?.trim() || null,
+      image_url: image_url?.trim() || null,
+    }
+
+    let { data, error } = await supabaseAdmin
+      .from('customers')
+      .insert(payload)
+      .select()
+
+    // Fallback retry if image_url column does not exist in customers table yet
+    if (error && (error.message.includes('image_url') || error.code === 'PGRST204')) {
+      delete payload.image_url
+      const retry = await supabaseAdmin
+        .from('customers')
+        .insert(payload)
+        .select()
+      data = retry.data
+      error = retry.error
+    }
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, data: data?.[0] })
+  } catch (error) {
+    console.error('Failed to create customer:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
 // PUT — Update customer
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_note } = body
+    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_note, image_url } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
@@ -21,12 +71,25 @@ export async function PUT(request: Request) {
     if (max_unpaid_days !== undefined) updateData.max_unpaid_days = max_unpaid_days
     if (admin_name !== undefined) updateData.admin_name = admin_name
     if (admin_note !== undefined) updateData.admin_note = admin_note
+    if (image_url !== undefined) updateData.image_url = image_url?.trim() || null
 
-    const { data, error } = await supabaseAdmin
+    let { data, error } = await supabaseAdmin
       .from('customers')
       .update(updateData)
       .eq('id', id)
       .select()
+
+    // Fallback retry if image_url column does not exist in customers table yet
+    if (error && (error.message.includes('image_url') || error.code === 'PGRST204')) {
+      delete updateData.image_url
+      const retry = await supabaseAdmin
+        .from('customers')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+      data = retry.data
+      error = retry.error
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

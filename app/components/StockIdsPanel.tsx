@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { StockId } from '@/lib/types'
+import ImageModal from '@/app/components/ImageModal'
 
 type ModalType = 'edit' | 'delete' | null
 type StatusFilter = 'all' | 'available' | 'reserved' | 'sold'
@@ -25,6 +26,7 @@ export default function StockIdsPanel() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [gameFilter, setGameFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
+  const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
 
   // Form states
   const [code, setCode] = useState('')
@@ -557,15 +559,29 @@ export default function StockIdsPanel() {
                 style={{ animation: `fadeInUp 0.3s ease-out ${0.03 * i}s both` }}
               >
                 {/* Thumbnail Image */}
-                <div className="w-full sm:w-20 h-28 sm:h-20 rounded-xl overflow-hidden bg-[var(--stat-bg)] border border-[var(--border-soft)] shrink-0 flex items-center justify-center relative group">
+                <div
+                  className={`w-full sm:w-20 h-28 sm:h-20 rounded-xl overflow-hidden bg-[var(--stat-bg)] border border-[var(--border-soft)] shrink-0 flex items-center justify-center relative group ${
+                    item.image_url ? 'cursor-pointer hover:border-[var(--accent-blue)] transition-all' : ''
+                  }`}
+                  onClick={() => {
+                    if (item.image_url) setViewImg({ src: item.image_url, title: `${item.game_name} (${item.code})` })
+                  }}
+                  title={item.image_url ? 'คลิกเพื่อดูรูปภาพขนาดใหญ่' : undefined}
+                >
                   {item.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
-                    />
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                        <span>🔍</span>
+                        <span className="text-[10px]">ดูรูป</span>
+                      </div>
+                    </>
                   ) : (
                     <div className="text-center p-2">
                       <span className="text-2xl block">🎮</span>
@@ -832,6 +848,14 @@ export default function StockIdsPanel() {
             </div>
           </div>
         </div>
+      )}
+      {/* Image Lightbox Modal */}
+      {viewImg && (
+        <ImageModal
+          src={viewImg.src}
+          alt={viewImg.title}
+          onClose={() => setViewImg(null)}
+        />
       )}
     </>
   )

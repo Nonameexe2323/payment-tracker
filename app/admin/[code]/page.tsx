@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Customer, Payment } from '@/lib/types'
-import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
+import { checkInstallmentStatus, getThaiDayName, cleanImageUrl } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
+import ImageModal from '@/app/components/ImageModal'
 
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
 
@@ -32,6 +33,8 @@ export default function CustomerDetailPage() {
   const [editMaxUnpaidDays, setEditMaxUnpaidDays] = useState<number>(3)
   const [editAdminName, setEditAdminName] = useState('')
   const [editAdminNote, setEditAdminNote] = useState('')
+  const [editImageUrl, setEditImageUrl] = useState('')
+  const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
   const [showReceipt, setShowReceipt] = useState(false)
   const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
@@ -142,6 +145,7 @@ export default function CustomerDetailPage() {
     setEditMaxUnpaidDays(customer.max_unpaid_days ?? 3)
     setEditAdminName(customer.admin_name || '')
     setEditAdminNote(customer.admin_note || '')
+    setEditImageUrl(customer.image_url || '')
     setModalMsg(null)
     setModal('edit')
   }
@@ -166,7 +170,8 @@ export default function CustomerDetailPage() {
           weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
           max_unpaid_days: Number(editMaxUnpaidDays) || 3,
           admin_name: editAdminName.trim() || null,
-          admin_note: editAdminNote.trim() || null
+          admin_note: editAdminNote.trim() || null,
+          image_url: editImageUrl.trim() || null,
         })
       })
       const result = await res.json()
@@ -281,12 +286,31 @@ export default function CustomerDetailPage() {
           </button>
 
           {/* Statement Header */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 pb-6 border-b border-[var(--border-soft)]">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider mb-1">รายละเอียดผ่อนชำระ</div>
-              <h1 className="text-2xl font-extrabold text-[var(--text-primary)] tracking-tight break-words">
-                {customer.name}
-              </h1>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 pb-6 border-b border-[var(--border-soft)]">
+            <div className="flex items-start gap-3.5 flex-1 min-w-0">
+              {customer.image_url && (
+                <div
+                  onClick={() => setViewImg({ src: customer.image_url!, title: customer.name })}
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-[var(--stat-bg)] border border-[var(--border-soft)] shrink-0 flex items-center justify-center relative group cursor-pointer hover:border-[var(--accent-blue)] transition-all shadow-sm"
+                  title="คลิกเพื่อดูรูปภาพขนาดใหญ่"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={customer.image_url}
+                    alt={customer.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                    <span>🔍</span>
+                  </div>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-wider mb-1">รายละเอียดผ่อนชำระ</div>
+                <h1 className="text-2xl font-extrabold text-[var(--text-primary)] tracking-tight break-words">
+                  {customer.name}
+                </h1>
               <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-muted)] flex-wrap">
                 <CopyCodeBadge code={customer.code} />
                 {customer.admin_name && (
@@ -303,6 +327,7 @@ export default function CustomerDetailPage() {
                   <div className="whitespace-pre-wrap font-medium">{customer.admin_note}</div>
                 </div>
               )}
+              </div>
             </div>
             <div className="self-start sm:self-auto">
               {isDefaulted ? (
@@ -750,6 +775,54 @@ export default function CustomerDetailPage() {
                   placeholder="เช่น ผ่อนไอดี Roblox / ขอนัดโอนทุกวันที่ 5"
                 />
               </div>
+
+              <div>
+                <label className="text-xs text-[var(--text-muted)] block mb-1 font-semibold flex items-center justify-between flex-wrap gap-1">
+                  <span>🔗 ลิงก์รูปภาพประกอบ (Image URL)</span>
+                  <span className="text-[11px] font-normal flex items-center gap-1.5">
+                    <span>🌐 เว็บฝากรูปฟรี:</span>
+                    <a href="https://imgbb.com/upload" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                      ImgBB ↗
+                    </a>
+                    <span className="opacity-40">|</span>
+                    <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-blue)] font-bold hover:underline inline-flex items-center gap-0.5">
+                      Postimages ↗
+                    </a>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  className="input-field w-full px-3.5 py-2 text-sm"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(cleanImageUrl(e.target.value))}
+                  placeholder="https://... (คัดลอกจาก Facebook เพจ หรือเลือก 'ลิงก์' ใน ImgBB)"
+                />
+
+                {editImageUrl && editImageUrl.includes('ibb.co/') && !editImageUrl.includes('i.ibb.co/') && (
+                  <div className="text-[11px] text-[var(--accent-gold)] mt-2 p-2.5 rounded-xl bg-[var(--accent-gold-soft)] border border-[var(--accent-gold)]/30 font-medium leading-relaxed">
+                    ⚠️ ลิงก์ที่วางเป็นลิงก์หน้าเว็บ (<code className="font-mono text-xs">ibb.co/...</code>) รูปจึงไม่ขึ้นครับ<br />
+                    👉 <strong>วิธีแก้:</strong> คลิกขวาที่รูปบนเว็บ ImgBB แล้วกด <strong>&quot;คัดลอกที่อยู่อิเมจ&quot; (Copy image address)</strong> นำมาวางแทนครับ (ลิงก์ที่ถูกต้องจะเป็น <code className="font-mono text-xs">https://i.ibb.co/...</code>)
+                  </div>
+                )}
+
+                {editImageUrl && (
+                  <div className="mt-2 p-2 rounded-xl bg-[var(--stat-bg)] border border-[var(--border-soft)] flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-[var(--border-soft)] flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={editImageUrl}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
+                      />
+                    </div>
+                    <div className="text-xs min-w-0">
+                      <span className="font-bold block text-[var(--text-primary)]">🖼️ ตัวอย่างรูปภาพ (Live Preview)</span>
+                      <span className="text-[10px] text-[var(--text-muted)] block truncate">{editImageUrl}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
               {modalMsg && (
                 <div className={`text-xs px-3.5 py-2.5 flex items-center gap-2 font-medium ${modalMsg.type === 'ok' ? 'alert-ok' : 'alert-err'}`}>
                   {modalMsg.text}
@@ -862,6 +935,15 @@ export default function CustomerDetailPage() {
           customer={customer}
           payments={payments}
           onClose={() => setShowReceipt(false)}
+        />
+      )}
+
+      {/* Image Lightbox Modal */}
+      {viewImg && (
+        <ImageModal
+          src={viewImg.src}
+          alt={viewImg.title}
+          onClose={() => setViewImg(null)}
         />
       )}
     </main>
