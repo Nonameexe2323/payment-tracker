@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { recordAdminLog } from '@/lib/logUtils'
 
 // GET — List stock IDs (optionally filter by status or game)
 export async function GET(request: Request) {
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name } = body
+    const { code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role } = body
 
     if (!code || !game_name || price_cash === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -80,6 +81,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    await recordAdminLog({
+      adminName: admin_name,
+      adminRole: admin_role,
+      actionType: 'CREATE_STOCK_ID',
+      details: `ลงประกาศคลังไอดีใหม่: "${game_name}" (รหัส: ${code.trim()}) ราคาเงินสด ${Number(price_cash).toLocaleString('th-TH')} ฿`,
+    })
+
     return NextResponse.json({ success: true, data: data?.[0] })
   } catch (error) {
     console.error('Failed to create stock_id:', error)
@@ -91,7 +99,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name } = body
+    const { id, code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -136,7 +144,15 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Stock item not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: data[0] })
+    const updatedItem = data[0]
+    await recordAdminLog({
+      adminName: admin_name,
+      adminRole: admin_role,
+      actionType: 'UPDATE_STOCK_ID',
+      details: `แก้ไขข้อมูลคลังไอดี: "${updatedItem.game_name}" (รหัส: ${updatedItem.code})`,
+    })
+
+    return NextResponse.json({ success: true, data: updatedItem })
   } catch (error) {
     console.error('Failed to update stock_id:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
@@ -148,10 +164,18 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    const adminName = searchParams.get('admin_name')
+    const adminRole = searchParams.get('admin_role')
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
     }
+
+    const { data: itemData } = await supabaseAdmin
+      .from('stock_ids')
+      .select('code, game_name')
+      .eq('id', id)
+      .single()
 
     const { error } = await supabaseAdmin
       .from('stock_ids')
@@ -161,6 +185,13 @@ export async function DELETE(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await recordAdminLog({
+      adminName: adminName || 'Owner',
+      adminRole: adminRole || 'owner',
+      actionType: 'DELETE_STOCK_ID',
+      details: `ลบประกาศไอดีคลังถาวร: "${itemData?.game_name || id}" (รหัส: ${itemData?.code || '-'})`,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

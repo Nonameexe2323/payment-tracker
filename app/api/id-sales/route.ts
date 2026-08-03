@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { recordAdminLog } from '@/lib/logUtils'
 
 // GET — List all ID sales
 export async function GET() {
@@ -24,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { game_id, game_name, buy_price, sell_price, admin_name, sold_at } = body
+    const { game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at } = body
 
     if (!game_id || buy_price === undefined || sell_price === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -49,6 +50,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    await recordAdminLog({
+      adminName: admin_name,
+      adminRole: admin_role,
+      actionType: 'CREATE_ID_SALE',
+      details: `บันทึกขายไอดี: "${game_id.trim()}" (${game_name || '-'}) ขาย ${Number(sell_price).toLocaleString('th-TH')} ฿ (กำไร ${profit.toLocaleString('th-TH')} ฿)`,
+    })
+
     return NextResponse.json({ success: true, data: data?.[0] })
   } catch (error) {
     console.error('Failed to create id_sale:', error)
@@ -60,7 +68,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, game_id, game_name, buy_price, sell_price, admin_name, sold_at } = body
+    const { id, game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -111,7 +119,15 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Record not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: data[0] })
+    const updatedSale = data[0]
+    await recordAdminLog({
+      adminName: admin_name,
+      adminRole: admin_role,
+      actionType: 'UPDATE_ID_SALE',
+      details: `แก้ไขรายการขายไอดี: "${updatedSale.game_id}" (${updatedSale.game_name || '-'})`,
+    })
+
+    return NextResponse.json({ success: true, data: updatedSale })
   } catch (error) {
     console.error('Failed to update id_sale:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
@@ -125,6 +141,8 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id')
     const monthStart = searchParams.get('month_start')
     const monthEnd = searchParams.get('month_end')
+    const adminName = searchParams.get('admin_name')
+    const adminRole = searchParams.get('admin_role')
 
     // Bulk delete by month range
     if (monthStart && monthEnd) {
@@ -138,6 +156,13 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
+      await recordAdminLog({
+        adminName: adminName || 'Owner',
+        adminRole: adminRole || 'owner',
+        actionType: 'DELETE_ID_SALES_MONTH',
+        details: `ลบรายการขายไอดีแบบยกเดือน (${monthStart.slice(0, 7)})`,
+      })
+
       return NextResponse.json({ success: true })
     }
 
@@ -145,6 +170,12 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json({ error: 'Missing id or month range' }, { status: 400 })
     }
+
+    const { data: saleData } = await supabaseAdmin
+      .from('id_sales')
+      .select('game_id')
+      .eq('id', id)
+      .single()
 
     const { error } = await supabaseAdmin
       .from('id_sales')
@@ -154,6 +185,13 @@ export async function DELETE(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await recordAdminLog({
+      adminName: adminName || 'Owner',
+      adminRole: adminRole || 'owner',
+      actionType: 'DELETE_ID_SALE',
+      details: `ลบรายการขายไอดีถาวร: "${saleData?.game_id || id}"`,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

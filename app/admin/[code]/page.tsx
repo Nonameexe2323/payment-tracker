@@ -10,6 +10,7 @@ import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 import PageLoading from '@/app/components/PageLoading'
 import ImageModal from '@/app/components/ImageModal'
+import { recordAdminLog } from '@/lib/logUtils'
 
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
 
@@ -94,6 +95,13 @@ export default function CustomerDetailPage() {
       setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง' })
       return
     }
+
+    await recordAdminLog({
+      adminName: customer.admin_name || 'Admin',
+      actionType: 'ADD_PAYMENT',
+      details: `บันทึกการรับชำระเงินค่างวด ${amt.toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
+    })
+
     setMsg({ type: 'ok', text: 'บันทึกการรับชำระเงินเรียบร้อยแล้ว ✨' })
     setAmount('')
     loadData()
@@ -113,6 +121,13 @@ export default function CustomerDetailPage() {
     }
     if (!data || data.length === 0) {
       alert('⚠️ รายการนี้ถูกอนุมัติหรือจัดการไปแล้วโดยแอดมินท่านอื่น')
+    } else if (customer) {
+      const approvedPayment = data[0]
+      await recordAdminLog({
+        adminName: customer.admin_name || 'Admin',
+        actionType: 'APPROVE_SLIP',
+        details: `อนุมัติสลิปโอนเงิน ${Number(approvedPayment.amount).toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
+      })
     }
     loadData()
   }
@@ -131,6 +146,13 @@ export default function CustomerDetailPage() {
     }
     if (!data || data.length === 0) {
       alert('⚠️ รายการนี้ถูกจัดการไปแล้วโดยแอดมินท่านอื่น')
+    } else if (customer) {
+      const rejectedPayment = data[0]
+      await recordAdminLog({
+        adminName: customer.admin_name || 'Admin',
+        actionType: 'REJECT_SLIP',
+        details: `ปฏิเสธสลิปโอนเงิน ${Number(rejectedPayment.amount).toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
+      })
     }
     loadData()
   }

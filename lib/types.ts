@@ -50,3 +50,22 @@ export type StockId = {
   admin_name?: string | null
   created_at: string
 }
+
+export type AdminRole = 'owner' | 'staff'
+
+export type AdminProfile = {
+  id: string
+  email: string
+  name: string
+  role: AdminRole
+  created_at: string
+}
+
+export type AdminLog = {
+  id: string
+  admin_name: string
+  admin_role: string
+  action_type: string
+  details: string
+  created_at: string
+}

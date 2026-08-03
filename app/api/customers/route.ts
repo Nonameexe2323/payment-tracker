@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { recordAdminLog } from '@/lib/logUtils'
 
 // POST — Create customer
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, name, total_amount, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_note, image_url } = body
+    const { code, name, total_amount, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url } = body
 
     if (!code || !name || !total_amount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Record activity log
+    await recordAdminLog({
+      adminName: admin_name,
+      adminRole: admin_role,
+      actionType: 'CREATE_CUSTOMER',
+      details: `สร้างลูกค้าผ่อนใหม่: "${name.trim()}" (รหัส: ${code}) ยอดผ่อนรวม ${Number(total_amount).toLocaleString('th-TH')} ฿`,
+    })
+
     return NextResponse.json({ success: true, data: data?.[0] })
   } catch (error) {
     console.error('Failed to create customer:', error)
@@ -55,7 +64,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_note, image_url } = body
+    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
@@ -99,7 +108,15 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: data[0] })
+    const updatedCustomer = data[0]
+    await recordAdminLog({
+      adminName: admin_name || updatedCustomer.admin_name,
+      adminRole: admin_role,
+      actionType: 'UPDATE_CUSTOMER',
+      details: `แก้ไขข้อมูลลูกค้าผ่อน: "${updatedCustomer.name}" (รหัส: ${updatedCustomer.code})`,
+    })
+
+    return NextResponse.json({ success: true, data: updatedCustomer })
   } catch (error) {
     console.error('Failed to update customer:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
@@ -111,10 +128,19 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    const adminName = searchParams.get('admin_name')
+    const adminRole = searchParams.get('admin_role')
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
     }
+
+    // Check customer info before deleting for log
+    const { data: custInfo } = await supabaseAdmin
+      .from('customers')
+      .select('name, code')
+      .eq('id', id)
+      .single()
 
     // Delete payments first
     const { error: payError } = await supabaseAdmin
@@ -135,6 +161,13 @@ export async function DELETE(request: Request) {
     if (custError) {
       return NextResponse.json({ error: 'Failed to delete customer: ' + custError.message }, { status: 500 })
     }
+
+    await recordAdminLog({
+      adminName: adminName || 'Owner',
+      adminRole: adminRole || 'owner',
+      actionType: 'DELETE_CUSTOMER',
+      details: `ลบลูกค้าผ่อนชำระถาวร: "${custInfo?.name || id}" (รหัส: ${custInfo?.code || '-'})`,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

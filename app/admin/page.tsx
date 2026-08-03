@@ -9,6 +9,7 @@ import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 import IdSalesPanel from '@/app/components/IdSalesPanel'
 import StockIdsPanel from '@/app/components/StockIdsPanel'
 import ImageModal from '@/app/components/ImageModal'
+import AdminLogsPanel from '@/app/components/AdminLogsPanel'
 
 async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -26,7 +27,7 @@ async function genUniqueCode() {
 
 type FilterType = 'all' | 'active' | 'defaulted'
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
-type AdminTab = 'installments' | 'id-sales' | 'stock-ids'
+type AdminTab = 'installments' | 'id-sales' | 'stock-ids' | 'logs'
 
 export default function AdminPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -60,6 +61,8 @@ export default function AdminPage() {
   const [editAdminNote, setEditAdminNote] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [editImageUrl, setEditImageUrl] = useState('')
+  const [adminRole, setAdminRole] = useState<'owner' | 'staff'>('owner')
+  const [adminProfileName, setAdminProfileName] = useState<string>('')
   const [viewImg, setViewImg] = useState<{ src: string; title: string } | null>(null)
   const [modalMsg, setModalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
@@ -93,6 +96,24 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadCustomers()
+
+    async function fetchAdminRole() {
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData?.session?.user) {
+        const u = sessionData.session.user
+        try {
+          const res = await fetch(`/api/admin-profile?email=${encodeURIComponent(u.email || '')}&userId=${encodeURIComponent(u.id)}`)
+          const result = await res.json()
+          if (result?.profile) {
+            setAdminRole(result.profile.role || 'owner')
+            setAdminProfileName(result.profile.name || u.email?.split('@')[0] || '')
+          }
+        } catch {
+          // Default to owner if fetch fails
+        }
+      }
+    }
+    fetchAdminRole()
 
     // Supabase Realtime subscription
     const channel = supabase
@@ -295,11 +316,20 @@ export default function AdminPage() {
         {/* Page Header */}
         <div className="page-header">
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2 flex-wrap">
               <svg className="w-5 h-5 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-              ระบบจัดการร้านค้า Jiksaw Shop
+              <span>ระบบจัดการร้านค้า Jiksaw Shop</span>
+              {adminRole === 'owner' ? (
+                <span className="badge text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold border border-amber-500/20 py-0.5 px-2.5 rounded-full">
+                  👑 ยศหัวเพจ (Owner)
+                </span>
+              ) : (
+                <span className="badge text-xs bg-slate-500/10 text-slate-400 font-bold border border-slate-500/20 py-0.5 px-2.5 rounded-full">
+                  🛡️ แอดมินทั่วไป (Staff)
+                </span>
+              )}
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium">จัดการรายการผ่อนชำระ และบันทึกยอดขายไอดี</p>
           </div>
@@ -323,7 +353,7 @@ export default function AdminPage() {
         </div>
 
         {/* ═══ ADMIN TAB NAVIGATION ═══ */}
-        <div className="nav-tabs mb-6">
+        <div className="nav-tabs mb-6 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('installments')}
             className={`nav-tab ${activeTab === 'installments' ? 'nav-tab-active' : ''}`}
@@ -351,6 +381,17 @@ export default function AdminPage() {
             </svg>
             🛒 ลงไอดีพร้อมขาย
           </button>
+          {adminRole === 'owner' && (
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`nav-tab ${activeTab === 'logs' ? 'nav-tab-active' : ''}`}
+            >
+              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              📜 ประวัติการทำงาน
+            </button>
+          )}
         </div>
 
         {/* ═══ TAB: ระบบผ่อนชำระ ═══ */}
@@ -862,6 +903,11 @@ export default function AdminPage() {
       {/* ═══ TAB: คลังไอดีพร้อมขาย ═══ */}
       {activeTab === 'stock-ids' && (
         <StockIdsPanel />
+      )}
+
+      {/* ═══ TAB: ประวัติการทำงาน ═══ */}
+      {activeTab === 'logs' && (
+        <AdminLogsPanel />
       )}
 
       </div>
