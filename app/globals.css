@@ -841,7 +841,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   padding: 0.35rem;
   background: var(--stat-bg);
   border-radius: 1.25rem;
@@ -858,15 +858,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .nav-tab {
-  flex: 1 1 0px;
-  min-width: 0;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
+  gap: 0.4rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 0.55rem 0.65rem;
+  padding: 0.55rem 0.9rem;
   border-radius: 0.875rem;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -875,11 +874,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: transparent;
   border: 2px solid transparent;
   white-space: nowrap;
-  shrink: 0;
   box-sizing: border-box;
 }
 @media (min-width: 640px) {
   .nav-tab {
+    flex: 1 1 0px;
     font-size: 0.85rem;
     padding: 0.65rem 0.85rem;
     gap: 0.45rem;
