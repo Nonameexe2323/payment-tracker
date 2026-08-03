@@ -83,6 +83,7 @@ export default function RootLayout({
           <div className="bg-blob blob-1" />
           <div className="bg-blob blob-2" />
           <div className="bg-blob blob-3" />
+          <div className="bg-blob blob-4" />
           <div className="bg-grid-overlay" />
         </div>
 
