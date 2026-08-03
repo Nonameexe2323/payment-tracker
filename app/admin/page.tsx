@@ -312,7 +312,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="page-header">
           <div>

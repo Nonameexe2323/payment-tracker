@@ -288,7 +288,7 @@ export default function CustomerDetailPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 relative">
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="panel p-6 sm:p-8">
           {/* Top navigation */}
           <button
