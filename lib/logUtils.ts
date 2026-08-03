@@ -15,7 +15,21 @@ export async function recordAdminLog({
 }: RecordLogParams): Promise<void> {
   try {
     const finalAdminName = adminName?.trim() || 'แอดมิน'
-    const finalAdminRole = adminRole?.trim() || 'staff'
+    let finalAdminRole = adminRole?.trim()
+
+    // Smart role detection if name contains owner keywords or if role is missing/staff
+    const nameLower = finalAdminName.toLowerCase()
+    if (
+      nameLower.includes('หัวเพจ') ||
+      nameLower.includes('owner') ||
+      nameLower.includes('เจ้าของ') ||
+      nameLower.includes('head') ||
+      nameLower.includes('ปอนด์')
+    ) {
+      finalAdminRole = 'owner'
+    } else if (!finalAdminRole) {
+      finalAdminRole = 'staff'
+    }
 
     await supabaseAdmin.from('admin_logs').insert({
       admin_name: finalAdminName,
