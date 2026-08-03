@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { IdSale } from '@/lib/types'
+import PageLoading from '@/app/components/PageLoading'
 
 type ModalType = 'edit' | 'delete' | 'delete-confirm' | 'delete-month' | 'delete-month-confirm' | null
 
@@ -253,11 +254,8 @@ export default function IdSalesPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="loading-spinner mb-3" />
-          <p className="text-sm text-[var(--text-muted)]">กำลังโหลดข้อมูล...</p>
-        </div>
+      <div className="py-16">
+        <PageLoading message="กำลังโหลดข้อมูลยอดขายไอดี..." />
       </div>
     )
   }

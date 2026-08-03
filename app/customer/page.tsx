@@ -8,6 +8,7 @@ import { checkInstallmentStatus, getThaiDayName } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
 import ImageModal from '@/app/components/ImageModal'
+import PageLoading from '@/app/components/PageLoading'
 
 export default function CustomerPage() {
   const [codeInput, setCodeInput] = useState('')
@@ -258,9 +259,8 @@ export default function CustomerPage() {
 
         {/* Loading */}
         {loading && (
-          <div className="text-center py-10">
-            <div className="loading-spinner mb-3" />
-            <p className="text-xs text-[var(--text-muted)] font-medium">กำลังค้นหาข้อมูลยอดผ่อน...</p>
+          <div className="py-6">
+            <PageLoading message="กำลังค้นหาข้อมูลยอดผ่อน..." />
           </div>
         )}
 

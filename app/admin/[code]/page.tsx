@@ -8,6 +8,7 @@ import { Customer, Payment } from '@/lib/types'
 import { checkInstallmentStatus, getThaiDayName, cleanImageUrl } from '@/lib/installmentUtils'
 import ReceiptModal from '@/app/components/ReceiptModal'
 import CopyCodeBadge from '@/app/components/CopyCodeBadge'
+import PageLoading from '@/app/components/PageLoading'
 import ImageModal from '@/app/components/ImageModal'
 
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
@@ -230,14 +231,7 @@ export default function CustomerDetailPage() {
   }
 
   if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="loading-spinner mb-3" />
-          <p className="text-xs text-[var(--text-muted)] font-medium">กำลังโหลดข้อมูล...</p>
-        </div>
-      </main>
-    )
+    return <PageLoading fullScreen message="กำลังโหลดข้อมูลผ่อนชำระ..." />
   }
 
   if (!customer) {

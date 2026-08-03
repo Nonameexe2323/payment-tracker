@@ -30,10 +30,9 @@ export default function LoginPage() {
         <div className="panel p-8" style={{ animation: 'scaleIn 0.4s ease-out both' }}>
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-[var(--accent-blue-soft)] flex items-center justify-center mx-auto mb-3 border border-[var(--accent-blue-soft)]">
-              <svg className="w-6 h-6 text-[var(--accent-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3 border-2 border-[var(--accent-blue)]/30 shadow-lg relative group bg-slate-900 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpg" alt="Jiksaw Shop Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-xl font-extrabold text-[var(--text-primary)] tracking-tight">Jiksaw Shop</h1>
             <p className="text-xs text-[var(--text-muted)] mt-1 font-medium">ระบบเข้าสู่ระบบผู้ดูแลร้านค้า</p>

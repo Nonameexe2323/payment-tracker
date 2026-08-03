@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { StockId } from '@/lib/types'
 import ImageModal from '@/app/components/ImageModal'
+import PageLoading from '@/app/components/PageLoading'
 
 const FACEBOOK_PAGE_URL = 'https://www.facebook.com/profile.php?id=100089517474962'
 
@@ -131,11 +132,8 @@ export default function CatalogPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="loading-spinner mb-3" />
-              <p className="text-sm text-[var(--text-muted)]">กำลังโหลดคลังไอดีสินค้า...</p>
-            </div>
+          <div className="py-12">
+            <PageLoading message="กำลังโหลดคลังไอดีสินค้า..." />
           </div>
         )}
 

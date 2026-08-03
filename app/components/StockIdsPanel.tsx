@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { StockId } from '@/lib/types'
 import ImageModal from '@/app/components/ImageModal'
+import PageLoading from '@/app/components/PageLoading'
 
 type ModalType = 'edit' | 'delete' | null
 type StatusFilter = 'all' | 'available' | 'reserved' | 'sold'
@@ -246,11 +247,8 @@ export default function StockIdsPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="loading-spinner mb-3" />
-          <p className="text-sm text-[var(--text-muted)]">กำลังโหลดข้อมูลคลังไอดี...</p>
-        </div>
+      <div className="py-16">
+        <PageLoading message="กำลังโหลดข้อมูลคลังไอดี..." />
       </div>
     )
   }
