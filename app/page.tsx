@@ -389,7 +389,7 @@ export default function Home() {
                   {/* Image Thumbnail with Verified Badge */}
                   <div className="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-purple-400/50 bg-slate-900 shadow-md">
                     <img
-                      src={rev.image_url || rev.image || '/logo.jpg'}
+                      src={rev.image_url || '/logo.jpg'}
                       alt={rev.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -409,10 +409,11 @@ export default function Home() {
                     </div>
 
                     <div className="mb-1 flex items-center gap-1">
-                      <span className={`text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full border ${rev.badge_color || rev.badgeColor || 'bg-pink-950/80 text-pink-300 border-pink-500/40'}`}>
+                      <span className={`text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full border ${rev.badge_color || 'bg-pink-950/80 text-pink-300 border-pink-500/40'}`}>
                         {rev.badge}
                       </span>
                     </div>
+
 
 
                     <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate italic">
