@@ -7,6 +7,50 @@ export default function Home() {
     { text: '🎮 Jiksaw Shop • บริการขายไอดีเกม & รับซื้อไอดีเกม', color: 'text-emerald-400 font-semibold' },
   ]
 
+  const reviews = [
+
+    {
+      name: 'คุณธีรภัทร์ S.',
+      badge: '👑 เพจหลัก JiksawShop',
+      badgeColor: 'bg-purple-950/80 text-purple-300 border-purple-500/40',
+      rating: 5,
+      comment: 'ส่งไอดีไวมาก ประกันครบ 100% แนะนำร้านนี้เลยครับ!',
+      image: '/logo.jpg'
+    },
+    {
+      name: 'คุณนนทวัฒน์ K.',
+      badge: '⚡ ลูกค้าผ่อนชำระครบงวด',
+      badgeColor: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40',
+      rating: 5,
+      comment: 'ผ่อนง่าย เช็คยอดผ่านเว็บเรียลไทม์สะดวกสุดๆ',
+      image: '/logo.jpg'
+    },
+    {
+      name: 'คุณศุภกร M.',
+      badge: '🛡️ เครดิตแน่น 100%',
+      badgeColor: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40',
+      rating: 5,
+      comment: 'แอดมินตอบไว ตอบตลอด 24 ชม. ดูแลดีมากๆ ครับ',
+      image: '/logo.jpg'
+    },
+    {
+      name: 'คุณพีรพัฒน์ R.',
+      badge: '🎮 ซื้อสดไอดีฟีฟาย',
+      badgeColor: 'bg-pink-950/80 text-pink-300 border-pink-500/40',
+      rating: 5,
+      comment: 'ไอดีตรงปก ไม่จกตา มีประกันหลังการขาย มั่นใจได้เลย',
+      image: '/logo.jpg'
+    },
+    {
+      name: 'คุณชนาธิป T.',
+      badge: '✨ รีวิวเพจ JiksawShop',
+      badgeColor: 'bg-amber-950/80 text-amber-300 border-amber-500/40',
+      rating: 5,
+      comment: 'ได้รับไอดีเล่นได้ทันที บริการประทับใจสุดๆ',
+      image: '/logo.jpg'
+    }
+  ]
+
 
   return (
     <main className="min-h-screen flex flex-col justify-between px-4 pt-6 pb-14 relative overflow-hidden">
@@ -312,6 +356,76 @@ export default function Home() {
           </div>
 
         </div>
+
+        {/* Customer Reviews Section (Auto-Scrolling Marquee with Image Thumbnails & Badges) */}
+        <div className="mt-8 mb-2 w-full">
+          <div className="flex items-center justify-between mb-2.5 px-1">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-400 font-bold text-sm sm:text-base animate-bounce">⭐</span>
+              <h3 className="text-xs sm:text-sm font-black text-white tracking-wide flex items-center gap-1.5">
+                <span>รีวิวส่วนหนึ่งจากลูกค้า</span>
+                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  เพจ JiksawShop
+                </span>
+              </h3>
+              <span className="hidden sm:inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                <span>✓</span> เครดิตแน่น 100%
+              </span>
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-[var(--text-muted)] flex items-center gap-1">
+              <span>✨</span> เลื่อนดูอัตโนมัติ
+            </span>
+          </div>
+
+          {/* Scrolling Marquee Box */}
+          <div className="relative overflow-hidden py-2.5 rounded-2xl border border-purple-500/30 bg-[#090b16]/80 backdrop-blur-md shadow-xl">
+            {/* Gradient Mask edges */}
+            <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#090b16] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#090b16] to-transparent z-10 pointer-events-none" />
+
+            <div className="animate-marquee flex items-center gap-3.5 whitespace-nowrap">
+              {[...reviews, ...reviews].map((rev, index) => (
+                <div
+                  key={index}
+                  className="shrink-0 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-[#0e1120] border border-slate-800 hover:border-purple-500/60 transition-all duration-300 flex items-center gap-3 min-w-[250px] sm:min-w-[290px] shadow-lg group transform-gpu"
+                >
+                  {/* Image Thumbnail with Verified Badge */}
+                  <div className="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-purple-400/50 bg-slate-900 shadow-md">
+                    <img
+                      src={rev.image}
+                      alt={rev.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[7px] border border-slate-950 font-black">
+                      ✓
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <div className="text-[11px] sm:text-xs font-black text-white truncate flex items-center gap-1.5">
+                        <span>{rev.name}</span>
+                      </div>
+                      <div className="text-[9px] sm:text-[10px] text-amber-400 font-extrabold shrink-0">
+                        {"⭐".repeat(rev.rating)}
+                      </div>
+                    </div>
+
+                    <div className="mb-1 flex items-center gap-1">
+                      <span className={`text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full border ${rev.badgeColor}`}>
+                        {rev.badge}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate italic">
+                      "{rev.comment}"
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Fixed Bottom Scrolling Marquee Ticker Bar (Exact reference style from profit-installment.vercel.app) */}
@@ -327,5 +441,6 @@ export default function Home() {
     </main>
   )
 }
+
 
 
