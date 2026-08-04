@@ -243,9 +243,20 @@
   to { transform: rotate(360deg); }
 }
 @keyframes scalePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(0,-2px,0) scale(1.04); }
 }
+
+@keyframes smoothFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -4px, 0); }
+}
+
+.will-change-transform {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
 
 /* ─── Base ─── */
 body {
