@@ -1,55 +1,52 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Review } from '@/lib/types'
+
+const FALLBACK_REVIEWS: Review[] = [
+  { id: '1', name: 'Sahapab Punyasaikunkphut', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-pink-950/80 text-pink-300 border-pink-500/40', rating: 5, comment: 'ร้านนี้ไม่โกงงงง ขายรหัสถูกด้วย', image_url: '/logo.jpg' },
+  { id: '2', name: 'Keke Jdjdj', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-purple-950/80 text-purple-300 border-purple-500/40', rating: 5, comment: 'ดีครับบริการดีราคาไม่แพงด้วย', image_url: '/logo.jpg' },
+  { id: '3', name: 'Wutthichai Phasuk', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40', rating: 5, comment: 'บริการดี ได้จริงแน่นอน ไม่มีบิด100%', image_url: '/logo.jpg' },
+  { id: '4', name: 'Natthaphong Eiei', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40', rating: 5, comment: 'ร้านดีมากกก ไม่โกงแน่นอน💫', image_url: '/logo.jpg' },
+  { id: '5', name: "K'Kritsada Buaphian", badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-amber-950/80 text-amber-300 border-amber-500/40', rating: 5, comment: '+1บริการดีกว่าที่คิดไม่เข้าใจก็บอกทุกอย่าง', image_url: '/logo.jpg' },
+  { id: '6', name: 'Kaka Jg', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-indigo-950/80 text-indigo-300 border-indigo-500/40', rating: 5, comment: 'ร้านนี้ดีมากๆครับมีแต่ไอดีโหดๆไม่มีไอดีที่ไม่โหดเลยราคาถูกกว่าร้านอื่นตอบเร็ว', image_url: '/logo.jpg' },
+  { id: '7', name: 'ยุครับ เน', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-rose-950/80 text-rose-300 border-rose-500/40', rating: 5, comment: 'ร้านนี้ดีครับผมไม่โกงแน่นอนครับ', image_url: '/logo.jpg' },
+  { id: '8', name: 'ผมใจ ว่าไง', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-sky-950/80 text-sky-300 border-sky-500/40', rating: 5, comment: 'ดีครับร้านนี้ตอบไวปลอดภัยแน่นอน', image_url: '/logo.jpg' },
+  { id: '9', name: 'Pukkawat Eamphabun', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-purple-950/80 text-purple-300 border-purple-500/40', rating: 5, comment: 'ร้านบริการดีมากครับพูดจาน่ารักมากครับ', image_url: '/logo.jpg' },
+  { id: '10', name: 'ใช่ไง ออ', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-pink-950/80 text-pink-300 border-pink-500/40', rating: 5, comment: 'ร้านนี้ดีครับแอดตอบไวทันใจของเขาดีจริงครับมาจัดกันได้', image_url: '/logo.jpg' },
+  { id: '11', name: 'Ramet RA', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40', rating: 5, comment: '+1ปลอดภัยไม่บิดไม่โกงมีกิจกรรมแจกไอดีฟรีด้วยครับ', image_url: '/logo.jpg' },
+  { id: '12', name: "อา' ปาย.", badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-amber-950/80 text-amber-300 border-amber-500/40', rating: 5, comment: 'ร้านไม่โกงงง ไอดีโหดมากกกกกก', image_url: '/logo.jpg' },
+  { id: '13', name: 'Wachirawit Cheysanoi', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40', rating: 5, comment: 'ร้านดีแบบนี้หายากเอาไปเลย5💫เลย', image_url: '/logo.jpg' },
+  { id: '14', name: 'Suphakit Chaowart', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-indigo-950/80 text-indigo-300 border-indigo-500/40', rating: 5, comment: 'ไม่โกงไม่เกรียนคุยง่าย+1.', image_url: '/logo.jpg' },
+  { id: '15', name: 'ชิเณวัฒน์ ฯ.', badge: '💖 แนะนำ Jiksaw shop', badge_color: 'bg-rose-950/80 text-rose-300 border-rose-500/40', rating: 5, comment: 'ไม่โกงไม่เกรียน100%คุยง่ายราคาถูกใจ +1', image_url: '/logo.jpg' }
+]
 
 export default function Home() {
+  const [reviews, setReviews] = useState<Review[]>(FALLBACK_REVIEWS)
+
+  useEffect(() => {
+    async function loadDynamicReviews() {
+      try {
+        const res = await fetch('/api/reviews')
+        const result = await res.json()
+        if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
+          setReviews(result.data)
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic reviews:', err)
+      }
+    }
+    loadDynamicReviews()
+  }, [])
+
   const tickerItems = [
     { text: '💬 มีปัญหาติดต่อได้เลยที่เพจ JiksawShop', color: 'text-pink-400 font-extrabold' },
     { text: '⚡ สามารถเช็คยอดผ่อนได้ง่ายเพียงไม่กี่คลิก ', color: 'text-cyan-300 font-bold' },
     { text: '🎮 Jiksaw Shop • บริการขายไอดีเกม & รับซื้อไอดีเกม', color: 'text-emerald-400 font-semibold' },
   ]
 
-  const reviews = [
 
-    {
-      name: 'คุณธีรภัทร์ S.',
-      badge: '👑 เพจหลัก JiksawShop',
-      badgeColor: 'bg-purple-950/80 text-purple-300 border-purple-500/40',
-      rating: 5,
-      comment: 'ส่งไอดีไวมาก ประกันครบ 100% แนะนำร้านนี้เลยครับ!',
-      image: '/logo.jpg'
-    },
-    {
-      name: 'คุณนนทวัฒน์ K.',
-      badge: '⚡ ลูกค้าผ่อนชำระครบงวด',
-      badgeColor: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40',
-      rating: 5,
-      comment: 'ผ่อนง่าย เช็คยอดผ่านเว็บเรียลไทม์สะดวกสุดๆ',
-      image: '/logo.jpg'
-    },
-    {
-      name: 'คุณศุภกร M.',
-      badge: '🛡️ เครดิตแน่น 100%',
-      badgeColor: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40',
-      rating: 5,
-      comment: 'แอดมินตอบไว ตอบตลอด 24 ชม. ดูแลดีมากๆ ครับ',
-      image: '/logo.jpg'
-    },
-    {
-      name: 'คุณพีรพัฒน์ R.',
-      badge: '🎮 ซื้อสดไอดีฟีฟาย',
-      badgeColor: 'bg-pink-950/80 text-pink-300 border-pink-500/40',
-      rating: 5,
-      comment: 'ไอดีตรงปก ไม่จกตา มีประกันหลังการขาย มั่นใจได้เลย',
-      image: '/logo.jpg'
-    },
-    {
-      name: 'คุณชนาธิป T.',
-      badge: '✨ รีวิวเพจ JiksawShop',
-      badgeColor: 'bg-amber-950/80 text-amber-300 border-amber-500/40',
-      rating: 5,
-      comment: 'ได้รับไอดีเล่นได้ทันที บริการประทับใจสุดๆ',
-      image: '/logo.jpg'
-    }
-  ]
 
 
   return (
@@ -392,7 +389,7 @@ export default function Home() {
                   {/* Image Thumbnail with Verified Badge */}
                   <div className="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-purple-400/50 bg-slate-900 shadow-md">
                     <img
-                      src={rev.image}
+                      src={rev.image_url || rev.image || '/logo.jpg'}
                       alt={rev.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -412,10 +409,11 @@ export default function Home() {
                     </div>
 
                     <div className="mb-1 flex items-center gap-1">
-                      <span className={`text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full border ${rev.badgeColor}`}>
+                      <span className={`text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full border ${rev.badge_color || rev.badgeColor || 'bg-pink-950/80 text-pink-300 border-pink-500/40'}`}>
                         {rev.badge}
                       </span>
                     </div>
+
 
                     <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate italic">
                       "{rev.comment}"

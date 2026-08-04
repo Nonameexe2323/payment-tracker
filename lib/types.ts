@@ -69,3 +69,14 @@ export type AdminLog = {
   details: string
   created_at: string
 }
+
+export type Review = {
+  id: string
+  name: string
+  badge: string
+  badge_color?: string | null
+  rating: number
+  comment: string
+  image_url?: string | null
+  created_at?: string | null
+}
