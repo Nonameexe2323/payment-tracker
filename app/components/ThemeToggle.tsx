@@ -4,34 +4,30 @@ import { useTheme } from './ThemeProvider'
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme()
+  const isDark = theme === 'dark'
 
   return (
     <button
       onClick={toggle}
-      aria-label={theme === 'light' ? 'เปลี่ยนเป็นโหมดกลางคืน' : 'เปลี่ยนเป็นโหมดกลางวัน'}
-      className="theme-toggle"
-      title={theme === 'light' ? 'โหมดกลางคืน' : 'โหมดกลางวัน'}
+      title={isDark ? 'เปลี่ยนเป็นโหมดกลางวัน (Light Mode)' : 'เปลี่ยนเป็นโหมดกลางคืน (Dark Mode)'}
+      className={`fixed bottom-4 right-4 z-40 px-3 py-1.5 rounded-full text-xs font-black backdrop-blur-md border shadow-xl flex items-center gap-1.5 transition-all duration-300 hover:scale-105 active:scale-95 ${
+        isDark
+          ? 'bg-slate-900/90 text-cyan-200 border-cyan-500/50 shadow-cyan-950/50 hover:border-cyan-400'
+          : 'bg-amber-100/90 text-amber-900 border-amber-400 shadow-amber-500/30 hover:border-amber-600'
+      }`}
     >
-      <span className="theme-toggle-icon">
-        {theme === 'light' ? (
-          /* Sun → click to go dark */
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        ) : (
-          /* Moon → click to go light */
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
+      <span className="text-sm">
+        {isDark ? '🌙' : '☀️'}
+      </span>
+      <span className="hidden sm:inline font-bold">
+        {isDark ? 'โหมดมืด' : 'โหมดสว่าง'}
+      </span>
+      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+        isDark
+          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30'
+          : 'bg-amber-500/20 text-amber-800 border border-amber-500/40'
+      }`}>
+        {isDark ? 'กลางคืน [ON]' : 'กลางวัน [ON]'}
       </span>
     </button>
   )
