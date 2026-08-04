@@ -20,22 +20,22 @@ export default function Home() {
               <div className="mb-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/40 shadow-lg backdrop-blur-md">
                 <span className="text-xs">🔥</span>
                 <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-purple-200 tracking-wide">
-                  ระบบเช็คยอดผ่อน & คลังไอดีเกมอันดับ 1
+                  ระบบเช็คยอดผ่อน & ขายไอดีเกมอันดับ1
                 </span>
               </div>
 
               {/* Main Headline */}
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[var(--text-primary)] leading-[1.1] mb-2 sm:mb-3">
-                PROFIT &<br />
-                INSTALLMENT<br />
+                PAYMENT &<br />
+                TRACKER<br />
                 <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">
-                  TRACKER
+                  JiksawShop
                 </span>
               </h1>
 
               {/* Subtitle */}
               <p className="text-[11px] sm:text-xs md:text-sm text-[var(--text-muted)] leading-relaxed font-semibold max-w-xl mb-4 sm:mb-6">
-                ระบบเช็คยอดผ่อนชำระสินค้า คลังไอดีเกมแท้ 100% และบริการติดต่อร้านค้า Jiksaw Shop แบบเรียลไทม์
+                ระบบเช็คยอดผ่อนชำระสินค้า และ เช็คไอดีที่เหลือภายในร้าน เพียงไม่กี่คลิก
               </p>
 
               {/* 4 Feature Cards Grid (2x2 Grid on both Mobile and Desktop) */}
@@ -100,10 +100,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
-                      ระบบปลอดภัย ประกัน 100%
+                      ระบบปลอดภัย รวดเร็วทันใจ 100%
                     </h3>
                     <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
-                      ไอดีเกมแท้ทุกตัว มีประกันอนุมัติไว รวดเร็วทันใจ
+                      ไอดีเกมอยู่กับตัว มีแอดมินคอยดูแลหลังการขาย
                     </p>
                   </div>
                 </div>
