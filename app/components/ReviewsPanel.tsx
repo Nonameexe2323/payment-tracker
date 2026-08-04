@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Review } from '@/lib/types'
+import { useToast } from '@/app/components/ToastProvider'
+
 
 const COLOR_OPTIONS = [
   { label: 'ชมพู (Pink)', value: 'bg-pink-950/80 text-pink-300 border-pink-500/40' },
@@ -14,6 +16,7 @@ const COLOR_OPTIONS = [
 ]
 
 export default function ReviewsPanel() {
+  const { showToast } = useToast()
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -73,8 +76,10 @@ export default function ReviewsPanel() {
       const result = await res.json()
       if (result.error) {
         setMsg({ type: 'err', text: result.error })
+        showToast('error', 'เกิดข้อผิดพลาดในการบันทึกรีวิว', result.error)
       } else {
         setMsg({ type: 'ok', text: 'เพิ่มรีวิวเรียบร้อยแล้ว!' })
+        showToast('success', 'เพิ่มรีวิวใหม่ลงหน้าเว็บเรียบร้อย! ⭐', `รีวิวจาก: ${name.trim()}`)
         setName('')
         setComment('')
         setImageUrl('/logo.jpg')
@@ -99,11 +104,13 @@ export default function ReviewsPanel() {
       setReviews(prev => prev.filter(r => r.id !== id))
       await fetch(`/api/reviews?id=${id}`, { method: 'DELETE' })
       setMsg({ type: 'ok', text: 'ลบรีวิวเรียบร้อยแล้ว' })
+      showToast('error', 'ลบรายการรีวิวเรียบร้อยแล้ว 🗑️')
     } catch (err) {
       setMsg({ type: 'err', text: 'ไม่สามารถลบรีวิวได้' })
       loadReviews()
     }
   }
+
 
   const filteredReviews = reviews.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase()) ||

@@ -11,6 +11,7 @@ import StockIdsPanel from '@/app/components/StockIdsPanel'
 import ImageModal from '@/app/components/ImageModal'
 import AdminLogsPanel from '@/app/components/AdminLogsPanel'
 import ReviewsPanel from '@/app/components/ReviewsPanel'
+import { useToast } from '@/app/components/ToastProvider'
 
 async function genUniqueCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -30,9 +31,10 @@ type FilterType = 'all' | 'active' | 'defaulted'
 type ModalType = 'edit' | 'default' | 'restore' | 'delete' | 'delete-confirm' | null
 type AdminTab = 'installments' | 'id-sales' | 'stock-ids' | 'reviews' | 'logs'
 
-
 export default function AdminPage() {
+  const { showToast } = useToast()
   const [customers, setCustomers] = useState<Customer[]>([])
+
   const [paidMap, setPaidMap] = useState<Record<string, number>>({})
   const [pendingMap, setPendingMap] = useState<Record<string, number>>({})
   const [custPaymentsMap, setCustPaymentsMap] = useState<Record<string, Payment[]>>({})
@@ -163,6 +165,7 @@ export default function AdminPage() {
         return
       }
       setMsg({ type: 'ok', text: `เพิ่มลูกค้าเรียบร้อยแล้ว! รหัสผ่อนคือ: ${code}` })
+      showToast('success', 'เพิ่มลูกค้าผ่อนชำระเรียบร้อยแล้ว! 🎉', `ลูกค้า: ${name.trim()} • รหัสผ่อน: ${code}`)
       setName('')
       setTotal('')
       setPlanType('daily')
@@ -175,6 +178,7 @@ export default function AdminPage() {
       loadCustomers()
     } catch {
       setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' })
+      showToast('error', 'เกิดข้อผิดพลาดในการเพิ่มลูกค้า', 'โปรดลองใหม่อีกครั้ง')
     }
   }
 
@@ -224,6 +228,7 @@ export default function AdminPage() {
         return
       }
       setModal(null)
+      showToast('info', 'บันทึกการแก้ไขเรียบร้อยแล้ว ✏️', `อัปเดตข้อมูล: ${editName.trim()}`)
       loadCustomers()
     } catch {
       setModalMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึก' })
@@ -250,6 +255,7 @@ export default function AdminPage() {
         return
       }
       setModal(null)
+      showToast('warning', 'ปรับสถานะลูกค้ารายนี้แล้ว ⚡', `${selectedCustomer.name} เป็น ${newStatus === 'defaulted' ? 'หลุดผ่อน' : 'ผ่อนปกติ'}`)
       loadCustomers()
     } catch {
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อ')
@@ -273,11 +279,13 @@ export default function AdminPage() {
         return
       }
       setModal(null)
+      showToast('error', 'ลบข้อมูลลูกค้าเรียบร้อยแล้ว 🗑️', `ลบลูกค้า: ${selectedCustomer.name}`)
       loadCustomers()
     } catch {
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อ')
     }
   }
+
 
   // Extract list of unique admin names
   const adminOptions = Array.from(new Set(customers.map(c => c.admin_name).filter(Boolean))) as string[]

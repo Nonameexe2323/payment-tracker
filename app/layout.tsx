@@ -4,8 +4,10 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ThemeToggle } from "./components/ThemeToggle";
 import JigsawParticles from "./components/JigsawParticles";
+import { ToastProvider } from "./components/ToastProvider";
 
 const prompt = Prompt({
+
 
   weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin", "thai"],
@@ -89,12 +91,15 @@ export default function RootLayout({
         </div>
 
         <ThemeProvider>
-          <div className="relative z-10 flex-1">
-            {children}
-          </div>
-          <ThemeToggle />
-          <JigsawParticles />
+          <ToastProvider>
+            <div className="relative z-10 flex-1">
+              {children}
+            </div>
+            <ThemeToggle />
+            <JigsawParticles />
+          </ToastProvider>
         </ThemeProvider>
+
 
       </body>
     </html>
