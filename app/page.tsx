@@ -15,18 +15,18 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
           {/* Left Column: Showcase Hero Panel (Seamless Floating Layout like reference site) */}
-          <div className="lg:col-span-7 flex flex-col justify-between p-2 sm:p-4">
+          <div className="lg:col-span-7 flex flex-col justify-between p-1 sm:p-4">
             <div>
               {/* Top Badge */}
-              <div className="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/40 shadow-lg backdrop-blur-md">
+              <div className="mb-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/40 shadow-lg backdrop-blur-md">
                 <span className="text-xs">🔥</span>
-                <span className="text-xs sm:text-sm font-extrabold text-purple-200 tracking-wide">
+                <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-purple-200 tracking-wide">
                   ระบบจัดการรายรับ & ยอดผ่อนอันดับ 1
                 </span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black tracking-tight text-[var(--text-primary)] leading-[1.1] mb-3">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[var(--text-primary)] leading-[1.1] mb-2 sm:mb-3">
                 PROFIT &<br />
                 INSTALLMENT<br />
                 <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">
@@ -35,81 +35,89 @@ export default function Home() {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed font-semibold max-w-xl mb-6">
+              <p className="text-[11px] sm:text-xs md:text-sm text-[var(--text-muted)] leading-relaxed font-semibold max-w-xl mb-4 sm:mb-6">
                 ระบบบริหารจัดการสรุปกำไรขายออก สรุปยอดขายประจำเดือน และติดตามยอดค้างผ่อนของลูกค้าแบบเรียลไทม์
               </p>
 
-              {/* 4 Feature Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-5">
+              {/* 4 Feature Cards Grid (2x2 Grid on both Mobile and Desktop) */}
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 my-4 sm:my-5">
                 {/* Card 1 */}
-                <div className="p-4 rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-emerald-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-2.5 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all duration-300">
-                    <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-emerald-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu flex flex-col justify-between">
+                  <div>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-2 sm:mb-2.5 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
+                      คำนวณกำไรเรียลไทม์
+                    </h3>
+                    <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
+                      สรุปกำไรสุทธิและต้นทุนแยกตามหมวดหมู่
+                    </p>
                   </div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-white mb-0.5">
-                    คำนวณกำไรเรียลไทม์
-                  </h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                    สรุปกำไรสุทธิและต้นทุนแยกตามหมวดหมู่
-                  </p>
                 </div>
 
                 {/* Card 2 */}
-                <div className="p-4 rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-purple-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-2.5 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all duration-300">
-                    <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-purple-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu flex flex-col justify-between">
+                  <div>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-2 sm:mb-2.5 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
+                      วิเคราะห์กราฟยอดขาย
+                    </h3>
+                    <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
+                      คำนวณกราฟเส้นและกราฟวงกลมประจำเดือน
+                    </p>
                   </div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-white mb-0.5">
-                    วิเคราะห์กราฟยอดขาย
-                  </h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                    คำนวณกราฟเส้นและกราฟวงกลมประจำเดือน
-                  </p>
                 </div>
 
                 {/* Card 3 */}
-                <div className="p-4 rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-indigo-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-2.5 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-300">
-                    <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-indigo-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu flex flex-col justify-between">
+                  <div>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-2 sm:mb-2.5 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
+                      ทักหาลูกค้าใน 1 คลิก
+                    </h3>
+                    <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
+                      ปุ่มทักหาลูกค้าทาง Line / Facebook ได้ทันที
+                    </p>
                   </div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-white mb-0.5">
-                    ทักหาลูกค้าใน 1 คลิก
-                  </h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                    ปุ่มทักหาลูกค้าทาง Line / Facebook ได้ทันที
-                  </p>
                 </div>
 
                 {/* Card 4 */}
-                <div className="p-4 rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-pink-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu">
-                  <div className="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-2.5 group-hover:scale-110 group-hover:bg-pink-500/20 transition-all duration-300">
-                    <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0e1120]/80 border border-slate-800/80 hover:border-pink-400/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/10 transition-all duration-300 ease-out group backdrop-blur-md transform-gpu flex flex-col justify-between">
+                  <div>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-2 sm:mb-2.5 group-hover:scale-110 group-hover:bg-pink-500/20 transition-all duration-300">
+                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
+                      แยกข้อมูลรายบัญชี
+                    </h3>
+                    <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
+                      สมัครใหม่รับกระดานเปล่า ไม่ปะปนกับผู้อื่น
+                    </p>
                   </div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-white mb-0.5">
-                    แยกข้อมูลรายบัญชี
-                  </h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                    สมัครใหม่รับกระดานเปล่า ไม่ปะปนกับผู้อื่น
-                  </p>
                 </div>
               </div>
             </div>
 
             {/* Bottom Banner Bar */}
-            <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-950/60 to-pink-950/60 border border-purple-500/40 flex items-center gap-3.5 backdrop-blur-md hover:border-purple-400/80 transition-all duration-300 group/banner shadow-lg shadow-purple-950/50">
+            <div className="mt-3 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-950/60 to-pink-950/60 border border-purple-500/40 flex items-center gap-2.5 sm:gap-3.5 backdrop-blur-md hover:border-purple-400/80 transition-all duration-300 group/banner shadow-lg shadow-purple-950/50">
               {/* Animated Mascot Logo Box */}
               <div className="relative shrink-0 group/mascot">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 rounded-xl blur-sm opacity-75 group-hover/mascot:opacity-100 group-hover/banner:scale-105 transition-all duration-500 animate-pulse" />
 
-                <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border-2 border-purple-200/90 shadow-lg bg-slate-900 flex items-center justify-center transform group-hover/mascot:scale-105 group-hover/banner:rotate-2 transition-transform duration-300 ease-out will-change-transform">
+                <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden border-2 border-purple-200/90 shadow-lg bg-slate-900 flex items-center justify-center transform group-hover/mascot:scale-105 group-hover/banner:rotate-2 transition-transform duration-300 ease-out will-change-transform">
                   <img
                     src="/logo.jpg"
                     alt="Jiksaw Shop Mascot Logo"
@@ -124,10 +132,10 @@ export default function Home() {
               </div>
 
               <div className="min-w-0">
-                <div className="text-xs sm:text-sm font-black text-purple-100 flex items-center gap-1 group-hover/banner:text-pink-300 transition-colors">
+                <div className="text-[11px] sm:text-sm font-black text-purple-100 flex items-center gap-1 group-hover/banner:text-pink-300 transition-colors">
                   🚀 พร้อมใช้งานทันที
                 </div>
-                <div className="text-[10px] sm:text-xs text-slate-300 font-medium truncate">
+                <div className="text-[9.5px] sm:text-xs text-slate-300 font-medium truncate">
                   เข้าสู่ระบบเพื่อเริ่มยอดกำไรและผ่อนสินค้าของคุณ
                 </div>
               </div>
