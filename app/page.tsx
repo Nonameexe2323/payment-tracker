@@ -20,7 +20,7 @@ export default function Home() {
               <div className="mb-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/40 shadow-lg backdrop-blur-md">
                 <span className="text-xs">🔥</span>
                 <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-purple-200 tracking-wide">
-                  ระบบจัดการรายรับ & ยอดผ่อนอันดับ 1
+                  ระบบเช็คยอดผ่อน & คลังไอดีเกมอันดับ 1
                 </span>
               </div>
 
@@ -35,7 +35,7 @@ export default function Home() {
 
               {/* Subtitle */}
               <p className="text-[11px] sm:text-xs md:text-sm text-[var(--text-muted)] leading-relaxed font-semibold max-w-xl mb-4 sm:mb-6">
-                ระบบบริหารจัดการสรุปกำไรขายออก สรุปยอดขายประจำเดือน และติดตามยอดค้างผ่อนของลูกค้าแบบเรียลไทม์
+                ระบบเช็คยอดผ่อนชำระสินค้า คลังไอดีเกมแท้ 100% และบริการติดต่อร้านค้า Jiksaw Shop แบบเรียลไทม์
               </p>
 
               {/* 4 Feature Cards Grid (2x2 Grid on both Mobile and Desktop) */}
@@ -49,10 +49,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
-                      คำนวณกำไรเรียลไทม์
+                      ดูยอดผ่อนและชำระง่ายๆเพียงไม่กี่คลิก
                     </h3>
                     <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
-                      สรุปกำไรสุทธิและต้นทุนแยกตามหมวดหมู่
+                      สรุปงวดชำระ ยอดคงเหลือ และแจ้งวันที่สุดผ่อนเรียลไทม์
                     </p>
                   </div>
                 </div>
@@ -66,10 +66,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
-                      วิเคราะห์กราฟยอดขาย
+                      มีสินค้าไอดีเกมในร้านให้ดูมากมาย
                     </h3>
                     <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
-                      คำนวณกราฟเส้นและกราฟวงกลมประจำเดือน
+                      สนใจไอดีตัวไหนทักเพจสอบถามแอดมินได้เลยงับ
                     </p>
                   </div>
                 </div>
@@ -83,10 +83,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
-                      ทักหาลูกค้าใน 1 คลิก
+                      ติดต่อแอดมินง่ายมาก
                     </h3>
                     <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
-                      ปุ่มทักหาลูกค้าทาง Line / Facebook ได้ทันที
+                      ปุ่มทักหาแอดมินทาง Line / Facebook ได้ทันที
                     </p>
                   </div>
                 </div>
@@ -96,14 +96,14 @@ export default function Home() {
                   <div>
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-2 sm:mb-2.5 group-hover:scale-110 group-hover:bg-pink-500/20 transition-all duration-300">
                       <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
                     </div>
                     <h3 className="text-[11px] sm:text-xs md:text-sm font-extrabold text-white mb-0.5 leading-tight">
-                      แยกข้อมูลรายบัญชี
+                      ระบบปลอดภัย ประกัน 100%
                     </h3>
                     <p className="text-[9.5px] sm:text-[11px] text-slate-400 leading-snug font-medium">
-                      สมัครใหม่รับกระดานเปล่า ไม่ปะปนกับผู้อื่น
+                      ไอดีเกมแท้ทุกตัว มีประกันอนุมัติไว รวดเร็วทันใจ
                     </p>
                   </div>
                 </div>
@@ -132,10 +132,10 @@ export default function Home() {
 
               <div className="min-w-0">
                 <div className="text-[11px] sm:text-sm font-black text-purple-100 flex items-center gap-1 group-hover/banner:text-pink-300 transition-colors">
-                  🚀 พร้อมใช้งานทันที
+                  🚀 พร้อมให้บริการ 24 ชั่วโมง
                 </div>
                 <div className="text-[9.5px] sm:text-xs text-slate-300 font-medium truncate">
-                  เข้าสู่ระบบเพื่อเริ่มยอดกำไรและผ่อนสินค้าของคุณ
+                  เช็คยอดผ่อนของคุณ หรือเลือกชมคลังไอดีเกมในร้านได้ทันที
                 </div>
               </div>
             </div>
