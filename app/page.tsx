@@ -3,11 +3,10 @@ import Link from 'next/link'
 export default function Home() {
   const tickerItems = [
     { text: '💬 มีปัญหาติดต่อได้เลยที่เพจ JiksawShop', color: 'text-pink-400 font-extrabold' },
-    { text: '⚡ ระบบบันทึกกำไร & ยอดผ่อนชำระ Realtime', color: 'text-cyan-300 font-bold' },
-    { text: '☁️ Supabase Cloud Database Realtime', color: 'text-purple-300 font-semibold' },
-    { text: '💖 Credit Created By Sakchawit Jiksaw Shop', color: 'text-amber-300 font-bold' },
-    { text: '🎮 Jiksaw Shop • บริการขายไอดีเกม & รับผ่อนชำระอันดับ 1', color: 'text-emerald-400 font-semibold' },
+    { text: '⚡ สามารถเช็คยอดผ่อนได้ง่ายเพียงไม่กี่คลิก ', color: 'text-cyan-300 font-bold' },
+    { text: '🎮 Jiksaw Shop • บริการขายไอดีเกม & รับซื้อไอดีเกม', color: 'text-emerald-400 font-semibold' },
   ]
+
 
   return (
     <main className="min-h-screen flex flex-col justify-between px-4 pt-6 pb-14 relative overflow-hidden">
