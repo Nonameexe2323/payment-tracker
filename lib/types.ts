@@ -7,7 +7,7 @@ export type Customer = {
   plan_type?: 'daily' | 'weekly' | null
   due_date?: string | null
   weekly_day?: number | null // 0=Sun, 1=Mon, ..., 6=Sat
-  max_unpaid_days?: number | null // Days allowed without payment before default (default: 3)
+  max_unpaid_days?: number | null // Days allowed without payment before default (default: 4)
   admin_name?: string | null
   admin_note?: string | null
   image_url?: string | null

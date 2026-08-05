@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       plan_type: plan_type || 'daily',
       due_date: due_date || null,
       weekly_day: plan_type === 'weekly' ? weekly_day : null,
-      max_unpaid_days: Number(max_unpaid_days) || 3,
+      max_unpaid_days: Number(max_unpaid_days) || 4,
       admin_name: admin_name?.trim() || null,
       admin_note: admin_note?.trim() || null,
       image_url: image_url?.trim() || null,

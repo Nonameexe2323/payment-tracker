@@ -325,7 +325,7 @@ export default function CustomerPage() {
                 <span className="text-[var(--accent-blue)] font-bold">
                   {selected.plan_type === 'weekly'
                     ? `ส่งยอดทุกวัน${getThaiDayName(selected.weekly_day)}`
-                    : `ไม่ส่งยอดผ่อนครบ ${selected.max_unpaid_days ?? 3} วันถือว่าหลุดผ่อน`}
+                    : `ไม่ส่งยอดผ่อนครบ ${selected.max_unpaid_days ?? 4} วันถือว่าหลุดผ่อน`}
                 </span>
               </div>
 
@@ -349,7 +349,7 @@ export default function CustomerPage() {
                 📌 <strong>กฎการผ่อนชำระของเพจ:</strong>{' '}
                 {selected.plan_type === 'weekly'
                   ? `ต้องส่งยอดภายในวัน${getThaiDayName(selected.weekly_day)}ของทุกสัปดาห์`
-                  : `ต้องส่งยอดชำระอย่างน้อย 1 ครั้งภายในทุกๆ ${selected.max_unpaid_days ?? 3} วัน`}{' '}
+                  : `ต้องส่งยอดชำระอย่างน้อย 1 ครั้งภายในทุกๆ ${selected.max_unpaid_days ?? 4} วัน`}{' '}
                 {selected.due_date ? `และต้องผ่อนยอดครบทั้งหมดภายในวันที่ ${selected.due_date}` : ''}
               </div>
             </div>

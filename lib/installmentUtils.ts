@@ -46,9 +46,11 @@ export function checkInstallmentStatus(
   const isCompleted = remainingAmount <= 0
 
   // Determine last payment timestamp or customer creation timestamp
+  // Counting both approved and pending (uploaded slip) payments so uploaded slip resets default timer immediately
   let lastPaymentDate: Date = new Date(customer.created_at)
-  if (approvedPayments.length > 0) {
-    const latestPayment = [...approvedPayments].sort(
+  const activityPayments = payments.filter(p => p.status === 'approved' || p.status === 'pending')
+  if (activityPayments.length > 0) {
+    const latestPayment = [...activityPayments].sort(
       (a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime()
     )[0]
     lastPaymentDate = new Date(latestPayment.paid_at)
@@ -89,44 +91,47 @@ export function checkInstallmentStatus(
   let warningMessage: string | undefined = undefined
 
   if (!isCompleted) {
-    // Rule 3: Final Due Date Exceeded -> Default Immediately
-    if (isDueDatePassed) {
+    if (customer.status === 'defaulted') {
       isDefaulted = true
-      reason = 'ส่งยอดไม่ทันภายในวันที่ตกลงกันไว้ตอนผ่อน (หลุดผ่อนทันที)'
-      statusLabel = 'หลุดผ่อน (เกินวันที่ตกลงไว้)'
-    }
-    // Rule 1: Daily Plan -> Missing max_unpaid_days (default: 3)
-    else if (customer.plan_type === 'daily' || !customer.plan_type) {
-      const maxDays = Number(customer.max_unpaid_days) > 0 ? Number(customer.max_unpaid_days) : 3
-      if (daysSinceLastPayment >= maxDays) {
-        isDefaulted = true
-        reason = `ไม่ได้ส่งยอดผ่อนติดต่อกันครบ ${maxDays} วัน`
-        statusLabel = `หลุดผ่อน (ไม่ส่งยอด ${maxDays} วัน)`
-      } else if (daysSinceLastPayment >= maxDays - 1 && maxDays > 1) {
-        isWarning = true
-        warningMessage = `⚠️ ไม่ได้ส่งยอด ${daysSinceLastPayment} วันติดต่อกันแล้ว (หากขาดส่งอีก ${maxDays - daysSinceLastPayment} วันจะหลุดผ่อนทันที)`
-      }
-    }
-    // Rule 2: Weekly Plan -> Missing weekly schedule
-    else if (customer.plan_type === 'weekly') {
-      const targetWeeklyDay = customer.weekly_day ?? 1 // default Monday
-      
-      // Calculate days since last payment
-      if (daysSinceLastPayment >= 7) {
-        isDefaulted = true
-        reason = `ไม่ได้ส่งยอดตามวันที่กำหนดประจำสัปดาห์ (วัน${getThaiDayName(targetWeeklyDay)})`
-        statusLabel = 'หลุดผ่อน (เกินกำหนดประจำสัปดาห์)'
-      } else if (daysSinceLastPayment >= 5) {
-        isWarning = true
-        warningMessage = `⚠️ เกือบถึงกำหนดวันส่งยอดประจำสัปดาห์ (กำหนดวัน${getThaiDayName(targetWeeklyDay)})`
-      }
-    }
-
-    // Manual admin default flag overrides status label if needed
-    if (customer.status === 'defaulted' && !reason) {
-      isDefaulted = true
-      reason = 'แอดมินปรับสถานะเป็นหลุดผ่อน'
       statusLabel = 'หลุดผ่อน'
+      if (isDueDatePassed) {
+        reason = 'ส่งยอดไม่ทันภายในวันที่ตกลงกันไว้ตอนผ่อน (หลุดผ่อน)'
+      } else if (customer.plan_type === 'daily' || !customer.plan_type) {
+        const maxDays = Number(customer.max_unpaid_days) > 0 ? Number(customer.max_unpaid_days) : 4
+        reason = `ไม่ได้ส่งยอดผ่อนติดต่อกันครบ ${maxDays} วัน`
+      } else if (customer.plan_type === 'weekly') {
+        const targetWeeklyDay = customer.weekly_day ?? 1
+        reason = `ไม่ได้ส่งยอดตามวันที่กำหนดประจำสัปดาห์ (วัน${getThaiDayName(targetWeeklyDay)})`
+      } else {
+        reason = 'แอดมินปรับสถานะเป็นหลุดผ่อน'
+      }
+    } else {
+      // customer.status is active: display warning when overdue, but preserve active status so admin restore works
+      isDefaulted = false
+      statusLabel = 'ปกติ (กำลังผ่อน)'
+
+      if (isDueDatePassed) {
+        isWarning = true
+        warningMessage = '⚠️ เกินวันครบกำหนดผ่อนที่ตกลงไว้แล้ว'
+      } else if (customer.plan_type === 'daily' || !customer.plan_type) {
+        const maxDays = Number(customer.max_unpaid_days) > 0 ? Number(customer.max_unpaid_days) : 4
+        if (daysSinceLastPayment >= maxDays) {
+          isWarning = true
+          warningMessage = `⚠️ ไม่ได้ส่งยอดผ่อน ${daysSinceLastPayment} วันติดต่อกัน (เกินกำหนด ${maxDays} วัน)`
+        } else if (daysSinceLastPayment >= maxDays - 1 && maxDays > 1) {
+          isWarning = true
+          warningMessage = `⚠️ ไม่ได้ส่งยอด ${daysSinceLastPayment} วันติดต่อกันแล้ว (หากขาดส่งอีก ${maxDays - daysSinceLastPayment} วันจะเกินกำหนด)`
+        }
+      } else if (customer.plan_type === 'weekly') {
+        const targetWeeklyDay = customer.weekly_day ?? 1
+        if (daysSinceLastPayment >= 7) {
+          isWarning = true
+          warningMessage = `⚠️ ไม่ได้ส่งยอดตามวันที่กำหนดประจำสัปดาห์ (วัน${getThaiDayName(targetWeeklyDay)})`
+        } else if (daysSinceLastPayment >= 5) {
+          isWarning = true
+          warningMessage = `⚠️ เกือบถึงกำหนดวันส่งยอดประจำสัปดาห์ (กำหนดวัน${getThaiDayName(targetWeeklyDay)})`
+        }
+      }
     }
   }
 

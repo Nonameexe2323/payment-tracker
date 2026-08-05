@@ -165,7 +165,7 @@ export default function CustomerDetailPage() {
     setEditPlanType(customer.plan_type || 'daily')
     setEditDueDate(customer.due_date || '')
     setEditWeeklyDay(customer.weekly_day ?? 1)
-    setEditMaxUnpaidDays(customer.max_unpaid_days ?? 3)
+    setEditMaxUnpaidDays(customer.max_unpaid_days ?? 4)
     setEditAdminName(customer.admin_name || '')
     setEditAdminNote(customer.admin_note || '')
     setEditImageUrl(customer.image_url || '')
@@ -191,7 +191,7 @@ export default function CustomerDetailPage() {
           plan_type: editPlanType,
           due_date: editDueDate || null,
           weekly_day: editPlanType === 'weekly' ? editWeeklyDay : null,
-          max_unpaid_days: Number(editMaxUnpaidDays) || 3,
+          max_unpaid_days: Number(editMaxUnpaidDays) || 4,
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null,
           image_url: editImageUrl.trim() || null,
@@ -371,7 +371,7 @@ export default function CustomerDetailPage() {
               <span className="text-[var(--text-muted)] font-medium">
                 {customer.plan_type === 'weekly'
                   ? `กำหนดส่งยอดทุกวัน${getThaiDayName(customer.weekly_day)}`
-                  : `ไม่ส่งยอดผ่อนติดต่อกัน ${customer.max_unpaid_days ?? 3} วันหลุดผ่อน`}
+                  : `ไม่ส่งยอดผ่อนติดต่อกัน ${customer.max_unpaid_days ?? 4} วันหลุดผ่อน`}
               </span>
             </div>
 
@@ -745,7 +745,7 @@ export default function CustomerDetailPage() {
                               : 'border-[var(--border-soft)] text-[var(--text-muted)] hover:border-[var(--accent-blue)]/50'
                           }`}
                         >
-                          {d} วัน {d === 3 ? '(มาตรฐาน)' : ''}
+                          {d} วัน {d === 4 ? '(มาตรฐาน)' : ''}
                         </button>
                       ))}
                     </div>
