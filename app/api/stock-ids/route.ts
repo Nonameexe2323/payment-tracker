@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role } = body
+    const { code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role, actor_admin_name, actor_admin_role } = body
 
     if (!code || !game_name || price_cash === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -82,8 +82,8 @@ export async function POST(request: Request) {
     }
 
     await recordAdminLog({
-      adminName: admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'CREATE_STOCK_ID',
       details: `ลงประกาศคลังไอดีใหม่: "${game_name}" (รหัส: ${code.trim()}) ราคาเงินสด ${Number(price_cash).toLocaleString('th-TH')} ฿`,
     })
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role } = body
+    const { id, code, title, game_name, price_cash, price_installment, details, image_url, status, admin_name, admin_role, actor_admin_name, actor_admin_role } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -146,8 +146,8 @@ export async function PUT(request: Request) {
 
     const updatedItem = data[0]
     await recordAdminLog({
-      adminName: admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'UPDATE_STOCK_ID',
       details: `แก้ไขข้อมูลคลังไอดี: "${updatedItem.game_name}" (รหัส: ${updatedItem.code})`,
     })
@@ -164,8 +164,8 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-    const adminName = searchParams.get('admin_name')
-    const adminRole = searchParams.get('admin_role')
+    const adminName = searchParams.get('actor_admin_name') || searchParams.get('admin_name')
+    const adminRole = searchParams.get('actor_admin_role') || searchParams.get('admin_role')
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })

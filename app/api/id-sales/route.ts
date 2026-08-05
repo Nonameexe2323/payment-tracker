@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at } = body
+    const { game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at, actor_admin_name, actor_admin_role } = body
 
     if (!game_id || buy_price === undefined || sell_price === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -51,8 +51,8 @@ export async function POST(request: Request) {
     }
 
     await recordAdminLog({
-      adminName: admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'CREATE_ID_SALE',
       details: `บันทึกขายไอดี: "${game_id.trim()}" (${game_name || '-'}) ขาย ${Number(sell_price).toLocaleString('th-TH')} ฿ (กำไร ${profit.toLocaleString('th-TH')} ฿)`,
     })
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at } = body
+    const { id, game_id, game_name, buy_price, sell_price, admin_name, admin_role, sold_at, actor_admin_name, actor_admin_role } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -121,8 +121,8 @@ export async function PUT(request: Request) {
 
     const updatedSale = data[0]
     await recordAdminLog({
-      adminName: admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'UPDATE_ID_SALE',
       details: `แก้ไขรายการขายไอดี: "${updatedSale.game_id}" (${updatedSale.game_name || '-'})`,
     })
@@ -141,8 +141,8 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id')
     const monthStart = searchParams.get('month_start')
     const monthEnd = searchParams.get('month_end')
-    const adminName = searchParams.get('admin_name')
-    const adminRole = searchParams.get('admin_role')
+    const adminName = searchParams.get('actor_admin_name') || searchParams.get('admin_name')
+    const adminRole = searchParams.get('actor_admin_role') || searchParams.get('admin_role')
 
     // Bulk delete by month range
     if (monthStart && monthEnd) {

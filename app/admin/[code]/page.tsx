@@ -24,6 +24,8 @@ export default function CustomerDetailPage() {
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [adminRole, setAdminRole] = useState<'owner' | 'staff'>('owner')
+  const [adminProfileName, setAdminProfileName] = useState<string>('')
 
   // Modal states
   const [modal, setModal] = useState<ModalType>(null)
@@ -61,6 +63,24 @@ export default function CustomerDetailPage() {
   useEffect(() => {
     loadData()
 
+    async function fetchAdminRole() {
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData?.session?.user) {
+        const u = sessionData.session.user
+        try {
+          const res = await fetch(`/api/admin-profile?email=${encodeURIComponent(u.email || '')}&userId=${encodeURIComponent(u.id)}`)
+          const result = await res.json()
+          if (result?.profile) {
+            setAdminRole(result.profile.role || 'owner')
+            setAdminProfileName(result.profile.name || u.email?.split('@')[0] || '')
+          }
+        } catch {
+          // default
+        }
+      }
+    }
+    fetchAdminRole()
+
     const channel = supabase
       .channel(`admin-detail-realtime-${code}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => {
@@ -89,7 +109,7 @@ export default function CustomerDetailPage() {
       amount: amt,
       status: 'approved',
       approved_at: new Date().toISOString(),
-      approved_by: 'Admin'
+      approved_by: adminProfileName || 'Admin'
     })
     if (error) {
       setMsg({ type: 'err', text: 'เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง' })
@@ -97,7 +117,8 @@ export default function CustomerDetailPage() {
     }
 
     await recordAdminLog({
-      adminName: customer.admin_name || 'Admin',
+      adminName: adminProfileName || customer.admin_name || 'Admin',
+      adminRole: adminRole,
       actionType: 'ADD_PAYMENT',
       details: `บันทึกการรับชำระเงินค่างวด ${amt.toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
     })
@@ -110,7 +131,7 @@ export default function CustomerDetailPage() {
   async function handleApprove(pId: string) {
     const { data, error } = await supabase
       .from('payments')
-      .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: 'Admin' })
+      .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: adminProfileName || 'Admin' })
       .eq('id', pId)
       .eq('status', 'pending')
       .select()
@@ -124,7 +145,8 @@ export default function CustomerDetailPage() {
     } else if (customer) {
       const approvedPayment = data[0]
       await recordAdminLog({
-        adminName: customer.admin_name || 'Admin',
+        adminName: adminProfileName || customer.admin_name || 'Admin',
+        adminRole: adminRole,
         actionType: 'APPROVE_SLIP',
         details: `อนุมัติสลิปโอนเงิน ${Number(approvedPayment.amount).toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
       })
@@ -149,7 +171,8 @@ export default function CustomerDetailPage() {
     } else if (customer) {
       const rejectedPayment = data[0]
       await recordAdminLog({
-        adminName: customer.admin_name || 'Admin',
+        adminName: adminProfileName || customer.admin_name || 'Admin',
+        adminRole: adminRole,
         actionType: 'REJECT_SLIP',
         details: `ปฏิเสธสลิปโอนเงิน ${Number(rejectedPayment.amount).toLocaleString('th-TH')} ฿ ของลูกค้า "${customer.name}" (รหัส: ${customer.code})`,
       })
@@ -195,6 +218,8 @@ export default function CustomerDetailPage() {
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null,
           image_url: editImageUrl.trim() || null,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
         })
       })
       const result = await res.json()
@@ -221,7 +246,12 @@ export default function CustomerDetailPage() {
       const res = await fetch('/api/customers', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: customer.id, status: newStatus })
+        body: JSON.stringify({
+          id: customer.id,
+          status: newStatus,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
+        })
       })
       const result = await res.json()
       if (!res.ok) {
@@ -238,7 +268,7 @@ export default function CustomerDetailPage() {
   async function confirmDelete() {
     if (!customer) return
     try {
-      const res = await fetch(`/api/customers?id=${customer.id}`, {
+      const res = await fetch(`/api/customers?id=${customer.id}&actor_admin_name=${encodeURIComponent(adminProfileName)}&actor_admin_role=${encodeURIComponent(adminRole)}`, {
         method: 'DELETE'
       })
       const result = await res.json()

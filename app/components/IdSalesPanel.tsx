@@ -12,6 +12,8 @@ export default function IdSalesPanel() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [selectedAdmin, setSelectedAdmin] = useState<string>('all')
+  const [adminRole, setAdminRole] = useState<'owner' | 'staff'>('owner')
+  const [adminProfileName, setAdminProfileName] = useState<string>('')
 
   // Form states
   const [gameId, setGameId] = useState('')
@@ -50,6 +52,24 @@ export default function IdSalesPanel() {
   }
 
   useEffect(() => {
+    async function fetchAdminRole() {
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData?.session?.user) {
+        const u = sessionData.session.user
+        try {
+          const res = await fetch(`/api/admin-profile?email=${encodeURIComponent(u.email || '')}&userId=${encodeURIComponent(u.id)}`)
+          const result = await res.json()
+          if (result?.profile) {
+            setAdminRole(result.profile.role || 'owner')
+            setAdminProfileName(result.profile.name || u.email?.split('@')[0] || '')
+          }
+        } catch {
+          // default
+        }
+      }
+    }
+    fetchAdminRole()
+
     loadSales()
 
     // Supabase Realtime subscription
@@ -87,6 +107,8 @@ export default function IdSalesPanel() {
           sell_price: Number(sellPrice),
           admin_name: adminName.trim() || null,
           sold_at: soldAt ? new Date(soldAt).toISOString() : new Date().toISOString(),
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
         }),
       })
       const result = await res.json()
@@ -139,6 +161,8 @@ export default function IdSalesPanel() {
           sell_price: Number(editSellPrice),
           admin_name: editAdminName.trim() || null,
           sold_at: editSoldAt ? new Date(editSoldAt).toISOString() : undefined,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
         }),
       })
       const result = await res.json()
@@ -161,7 +185,7 @@ export default function IdSalesPanel() {
   async function confirmDelete() {
     if (!selectedSale) return
     try {
-      const res = await fetch(`/api/id-sales?id=${selectedSale.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/id-sales?id=${selectedSale.id}&actor_admin_name=${encodeURIComponent(adminProfileName)}&actor_admin_role=${encodeURIComponent(adminRole)}`, { method: 'DELETE' })
       const result = await res.json()
       if (!res.ok) {
         alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown error'))
@@ -186,7 +210,7 @@ export default function IdSalesPanel() {
     const monthStart = new Date(year, month - 1, 1).toISOString()
     const monthEnd = new Date(year, month, 1).toISOString()
     try {
-      const res = await fetch(`/api/id-sales?month_start=${encodeURIComponent(monthStart)}&month_end=${encodeURIComponent(monthEnd)}`, { method: 'DELETE' })
+      const res = await fetch(`/api/id-sales?month_start=${encodeURIComponent(monthStart)}&month_end=${encodeURIComponent(monthEnd)}&actor_admin_name=${encodeURIComponent(adminProfileName)}&actor_admin_role=${encodeURIComponent(adminRole)}`, { method: 'DELETE' })
       const result = await res.json()
       if (!res.ok) {
         alert('เกิดข้อผิดพลาด: ' + (result.error || 'Unknown error'))

@@ -157,6 +157,8 @@ export default function AdminPage() {
           admin_name: adminName.trim() || null,
           admin_note: adminNote.trim() || null,
           image_url: imageUrl.trim() || null,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
         }),
       })
       const result = await res.json()
@@ -220,6 +222,8 @@ export default function AdminPage() {
           admin_name: editAdminName.trim() || null,
           admin_note: editAdminNote.trim() || null,
           image_url: editImageUrl.trim() || null,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
         })
       })
       const result = await res.json()
@@ -247,7 +251,12 @@ export default function AdminPage() {
       const res = await fetch('/api/customers', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedCustomer.id, status: newStatus })
+        body: JSON.stringify({
+          id: selectedCustomer.id,
+          status: newStatus,
+          actor_admin_name: adminProfileName,
+          actor_admin_role: adminRole,
+        })
       })
       const result = await res.json()
       if (!res.ok) {
@@ -270,7 +279,7 @@ export default function AdminPage() {
   async function confirmDelete() {
     if (!selectedCustomer) return
     try {
-      const res = await fetch(`/api/customers?id=${selectedCustomer.id}`, {
+      const res = await fetch(`/api/customers?id=${selectedCustomer.id}&actor_admin_name=${encodeURIComponent(adminProfileName)}&actor_admin_role=${encodeURIComponent(adminRole)}`, {
         method: 'DELETE'
       })
       const result = await res.json()

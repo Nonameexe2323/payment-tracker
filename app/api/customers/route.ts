@@ -6,7 +6,7 @@ import { recordAdminLog } from '@/lib/logUtils'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, name, total_amount, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url } = body
+    const { code, name, total_amount, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url, actor_admin_name, actor_admin_role } = body
 
     if (!code || !name || !total_amount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -45,10 +45,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Record activity log
+    // Record activity log using the logged in actor admin
     await recordAdminLog({
-      adminName: admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'CREATE_CUSTOMER',
       details: `สร้างลูกค้าผ่อนใหม่: "${name.trim()}" (รหัส: ${code}) ยอดผ่อนรวม ${Number(total_amount).toLocaleString('th-TH')} ฿`,
     })
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url } = body
+    const { id, name, total_amount, status, plan_type, due_date, weekly_day, max_unpaid_days, admin_name, admin_role, admin_note, image_url, actor_admin_name, actor_admin_role } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
@@ -110,8 +110,8 @@ export async function PUT(request: Request) {
 
     const updatedCustomer = data[0]
     await recordAdminLog({
-      adminName: admin_name || updatedCustomer.admin_name,
-      adminRole: admin_role,
+      adminName: actor_admin_name || admin_name,
+      adminRole: actor_admin_role || admin_role,
       actionType: 'UPDATE_CUSTOMER',
       details: `แก้ไขข้อมูลลูกค้าผ่อน: "${updatedCustomer.name}" (รหัส: ${updatedCustomer.code})`,
     })
@@ -128,8 +128,8 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-    const adminName = searchParams.get('admin_name')
-    const adminRole = searchParams.get('admin_role')
+    const adminName = searchParams.get('actor_admin_name') || searchParams.get('admin_name')
+    const adminRole = searchParams.get('actor_admin_role') || searchParams.get('admin_role')
 
     if (!id) {
       return NextResponse.json({ error: 'Missing customer id' }, { status: 400 })
